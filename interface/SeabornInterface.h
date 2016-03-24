@@ -12,7 +12,7 @@
 #include "TMath.h"
 #include "TColor.h"
 
-#include "RootUtils/SimpleConfiguration.h"
+#include "MyTools/RootUtils/interface/SimpleConfiguration.h"
 
 namespace Root {
 	class SeabornInterface {
