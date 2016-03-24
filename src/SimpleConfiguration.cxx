@@ -26,20 +26,11 @@ TString GetNodeAttribute(TXMLNode *node, TString attr_name) {
 
 ClassImp (SimpleConfiguration);
 
-
-SimpleConfiguration::~SimpleConfiguration() {
-
-}
-
-SimpleConfiguration* LoadSimpleConfiguration(TString p_path) {
-	SimpleConfiguration *configuration = new SimpleConfiguration();
-	configuration->LoadConfiguration(p_path);
-	return configuration;
-}
-
-SimpleConfiguration::SimpleConfiguration() {
-
-}
+//SimpleConfiguration* LoadSimpleConfiguration(TString p_path) {
+//	SimpleConfiguration *configuration = new SimpleConfiguration();
+//	configuration->LoadConfiguration(p_path);
+//	return configuration;
+//}
 
 TString SimpleConfiguration::GetElement(TString elem_name) {
 	return GetItem(elem_name);
