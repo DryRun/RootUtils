@@ -1,7 +1,7 @@
 #ifndef SeabornInterface_cxx
 #define SeabornInterface_cxx
 
-#include "RootUtils/SeabornInterface.h"
+#include "MyTools/RootUtils/interface/SeabornInterface.h"
 
 namespace Root {
 

@@ -1,0 +1,8 @@
+<use   name="boost"/>
+<use   name="rootcore"/>
+<use   name="roothistmatrix"/>
+<use   name="roottmva"/>
+<use   name="rootxml"/>
+<export>
+  <lib   name="1"/>
+</export>

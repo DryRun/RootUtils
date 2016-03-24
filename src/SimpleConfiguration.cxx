@@ -1,14 +1,14 @@
 #ifndef XMLHelper_cxx
 #define XMLHelper_cxx
 
-#include "RootUtils/SimpleConfiguration.h"
+#include "MyTools/RootUtils/interface/SimpleConfiguration.h"
 
 using namespace std;
 
 TString GetNodeAttribute(TXMLNode *node, TString attr_name) {
 
 	TString attr_value = "";
-	bool found = false;
+	//bool found = false;
 
 	TList *c_attrlist = node->GetAttributes();
 	TIter c_iter(c_attrlist);
@@ -16,7 +16,7 @@ TString GetNodeAttribute(TXMLNode *node, TString attr_name) {
 		TXMLAttr *c_xmlattr = (TXMLAttr*)obj;
 		if (c_xmlattr->GetName() == attr_name) {
 			attr_value = c_xmlattr->GetValue();
-			found = true;
+			//found = true;
 			break;
 		}
 	}
@@ -26,20 +26,11 @@ TString GetNodeAttribute(TXMLNode *node, TString attr_name) {
 
 ClassImp (SimpleConfiguration);
 
-
-SimpleConfiguration::~SimpleConfiguration() {
-
-}
-
-SimpleConfiguration* LoadSimpleConfiguration(TString p_path) {
-	SimpleConfiguration *configuration = new SimpleConfiguration();
-	configuration->LoadConfiguration(p_path);
-	return configuration;
-}
-
-SimpleConfiguration::SimpleConfiguration() {
-
-}
+//SimpleConfiguration* LoadSimpleConfiguration(TString p_path) {
+//	SimpleConfiguration *configuration = new SimpleConfiguration();
+//	configuration->LoadConfiguration(p_path);
+//	return configuration;
+//}
 
 TString SimpleConfiguration::GetElement(TString elem_name) {
 	return GetItem(elem_name);

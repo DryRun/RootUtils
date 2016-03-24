@@ -2,6 +2,7 @@
 #define XMLHELPER_h
 
 #include <TROOT.h>
+#include "TObject.h"
 #include "TCollection.h"
 #include "TXMLNode.h"
 #include "TXMLDocument.h"
@@ -28,12 +29,12 @@ public:
 	/**
 	  * Constructor
 	  */
-	SimpleConfiguration();
+	SimpleConfiguration() {};
 	
 	/**
 	  * Destructor
 	  */
-	~SimpleConfiguration();
+	~SimpleConfiguration() {};
 
 	// Global IO
 	/**
