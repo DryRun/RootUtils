@@ -86,12 +86,13 @@ namespace Root {
 		std::cout << "[DistributionCanvas] DEBUG : Making frames" << std::endl;
 		#endif
 
-		TH1D *h_frame;
-		THStack *h_stack;
+		TH1D *h_frame = 0;
+		THStack *h_stack = new THStack("hs", "hstack");
 		if (!do_stacked) {
-			double c_left, c_right, c_top, c_bottom;
-			c_top = -1e20;
-			c_bottom = 1e20;
+			double c_left = 0.;
+			double c_right = 0;
+			double c_top = -1e20;
+			double c_bottom = 1e20;
 			for (std::vector<TString>::iterator it = m_definition_list.begin(); it != m_definition_list.end(); ++it) {
 				if (it == m_definition_list.begin()) {
 					c_left = m_histograms[*it]->GetXaxis()->GetXmin();
@@ -128,7 +129,6 @@ namespace Root {
 			}
 			h_frame->DrawCopy();
 		} else {
-			h_stack = new THStack("hs", "hstack");
 			if (m_manual_y_axis_title) {
 				h_stack->GetYaxis()->SetTitle(y_axis_title);
 			}
@@ -200,6 +200,11 @@ namespace Root {
 
 		if (!do_stacked) {
 			if (h_frame != 0x0) h_frame->Delete();
+		}
+
+		if (h_stack) {
+			delete h_stack;
+			h_stack = 0;
 		}
 	}
 

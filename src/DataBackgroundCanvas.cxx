@@ -422,7 +422,7 @@ namespace Root {
 			// If no ratio, the top frame gets the labels
 			if (m_use_bin_labels_) {
 				// Check that we have the right number of bin labels
-				if (m_bin_labels_.size() != m_hist_frame_->GetNbinsX()) {
+				if ((unsigned int)m_bin_labels_.size() != (unsigned int)m_hist_frame_->GetNbinsX()) {
 					std::cerr << "[DataBackgroundCanvas] You specified " << m_bin_labels_.size() << " labels, but the frame has " << m_hist_frame_->GetNbinsX() << " bins. Please fix." << std::endl;
 					exit(1);
 				}
@@ -592,14 +592,14 @@ namespace Root {
 				// Uncertainties: put only the data statistical uncertainties on the ratio histogram, and put the systematics into a band
 				// The histogram has to have symmetric Gaussian errors, which might not be appropriate if you want Poisson errors!
 				for (int bin = 1; bin <= m_ratio_histograms_[(*it).first]->hist->GetNbinsX(); ++bin) {
-					double c_background;
+					double c_background = 0.;
 					if (m_background_histograms_list_.size() > 0) {
 						c_background = m_hist_total_background_->GetBinContent(bin);
 					} else {
 						c_background = 0.;
 					}
-					double c_ratio_value;
-					double c_ratio_uncertainty;
+					double c_ratio_value = 0.;
+					double c_ratio_uncertainty = 0.;
 					if (c_background > 0) {
 						if (m_ratio_style_ == kDeviation) {
 							c_ratio_value = (m_ratio_histograms_[(*it).first]->hist->GetBinContent(bin) / c_background - 1.);
@@ -637,9 +637,9 @@ namespace Root {
 					double data = (*it).second->hist->GetBinContent(bin);
 					double background = (m_background_histograms_list_.size() > 0 ? m_hist_total_background_->GetBinContent(bin) : 0.);
 					if (data > 0. && background > 0.) {
-						double ratio;
-						double ratio_err_up;
-						double ratio_err_down;
+						double ratio = 0.;
+						double ratio_err_up = 0.;
+						double ratio_err_down = 0.;
 						if (m_ratio_style_ == kRatio) {
 							ratio = data / background;
 							ratio_err_up = (0.5 + TMath::Sqrt(0.25 + data)) / background;
@@ -699,8 +699,8 @@ namespace Root {
 				}
 
 				// Some hard limits on the ratio limits, to prevent the scale from going out of control.
-				double c_ratio_min_limit;
-				double c_ratio_max_limit;
+				double c_ratio_min_limit = 0.;
+				double c_ratio_max_limit = 0.;
 				if (m_ratio_style_ == kRatio) {
 					c_ratio_min_limit = 0.;
 					c_ratio_max_limit = 2.;
@@ -724,7 +724,7 @@ namespace Root {
 			}
 			if (m_use_bin_labels_) {
 				// Check that we have the right number of bin labels
-				if (m_bin_labels_.size() != m_ratio_frame_->GetNbinsX()) {
+				if ((unsigned int)m_bin_labels_.size() != (unsigned int)m_ratio_frame_->GetNbinsX()) {
 					std::cerr << "[DataBackgroundCanvas] You specified " << m_bin_labels_.size() << " labels, but the frame has " << m_ratio_frame_->GetNbinsX() << " bins. Please fix." << std::endl;
 					exit(1);
 				}
