@@ -1,3 +1,5 @@
+<use   name="FWCore/ServiceRegistry"/>
+<use   name="CommonTools/UtilAlgos"/>
 <use   name="boost"/>
 <use   name="rootcore"/>
 <use   name="roothistmatrix"/>
