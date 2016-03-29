@@ -56,5 +56,10 @@
 #pragma link C++ class Root::SystematicsManager;
 #pragma link C++ namespace Constants;
 #pragma link C++ namespace Root;
+#pragma link C++ function myText+;
+#pragma link C++ function CanvasLabel+;
+#pragma link C++ function myBoxText+;
+#pragma link C++ function myMarkerText+;
+#pragma link C++ function SetCanvasStyle+;
 //#pragma link C++ function Root::CombineHistogramBins;
 #endif
