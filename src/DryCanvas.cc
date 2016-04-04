@@ -151,9 +151,9 @@ namespace Root {
 
 
 	// Text drawing
-	void DryCanvas::AddAtlasLabel(Float_t p_x, Float_t p_y, TString p_text, double p_size_modifier) {
+	void DryCanvas::AddCmsLabel(Float_t p_x, Float_t p_y, TString p_text, double p_size_modifier) {
 		this->cd();
-		CanvasLabel(p_x, p_y, p_text, kBlack, p_size_modifier);
+		CMSLabel(p_x, p_y, p_text, kBlack, p_size_modifier);
 	}
 
 

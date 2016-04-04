@@ -36,7 +36,7 @@
 #include "MyTools/RootUtils/interface/CommonFunctions.h"
 #include "MyTools/RootUtils/interface/RootColors.h"
 #include "MyTools/RootUtils/interface/SeabornInterface.h"
-#include "MyTools/RootUtils/interface/CanvasLabels.h"
+#include "MyTools/RootUtils/interface/CanvasHelpers.h"
 
 namespace Root {
 
@@ -126,10 +126,10 @@ namespace Root {
 
 		// Text drawing
 		/**
-		  * AddAtlasLabel
-		  * - Draw an ATLAS label on the upper plot, optionally with text
+		  * AddCmsLabel
+		  * - Draw a CMS label on the upper plot, optionally with text
 		  */
-		void AddAtlasLabel(Float_t p_x, Float_t p_y, TString p_text = "", double p_size_modifier = 1.);
+		void AddCmsLabel(Float_t p_x, Float_t p_y, TString p_text = "", double p_size_modifier = 1.);
 
 
 		/**

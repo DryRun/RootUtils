@@ -18,6 +18,7 @@
 #include "MyTools/RootUtils/interface/SystematicsContainer.h"
 #include "MyTools/RootUtils/interface/SystematicsManager.h"
 #include "MyTools/RootUtils/interface/CommonFunctions.h"
+#include "MyTools/RootUtils/interface/CanvasHelpers.h"
 
 #ifdef __CINT__
 
@@ -56,10 +57,10 @@
 #pragma link C++ class Root::SystematicsManager;
 #pragma link C++ namespace Constants;
 #pragma link C++ namespace Root;
-#pragma link C++ function myText+;
-#pragma link C++ function CanvasLabel+;
-#pragma link C++ function myBoxText+;
-#pragma link C++ function myMarkerText+;
-#pragma link C++ function SetCanvasStyle+;
+#pragma link C++ function Root::CMSLabel;
+#pragma link C++ function Root::myText;
+#pragma link C++ function Root::myBoxText;
+#pragma link C++ function Root::myMarkerText;
+#pragma link C++ function Root::SetCanvasStyle;
 //#pragma link C++ function Root::CombineHistogramBins;
 #endif

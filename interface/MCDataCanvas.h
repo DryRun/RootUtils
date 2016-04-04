@@ -5,7 +5,6 @@
 
 #include "MyTools/RootUtils/interface/CommonFunctions.h"
 #include "MyTools/RootUtils/interface/DryLegend.h"
-#include "MyTools/RootUtils/interface/CanvasLabels.h"
 
 namespace Root {
 
