@@ -4,7 +4,7 @@
 #include "MyTools/RootUtils/interface/HistogramManager.h"
 
 namespace Root {
-	HistogramManager::HistogramManager() {
+	HistogramManager::HistogramManager(edm::Service<TFileService> *p_fs) : fs_(p_fs) {
 	}
 
 	HistogramManager::~HistogramManager() {}

@@ -35,7 +35,7 @@ namespace Root {
 
 		/*** Public Methods ***/
 	public:
-		HistogramManager();
+		HistogramManager(edm::Service<TFileService> *p_fs);
 		~HistogramManager();
 
 		void AddPrefix(TString p_prefix);
