@@ -58,7 +58,7 @@
 #pragma link C++ namespace Constants;
 #pragma link C++ namespace Root;
 #pragma link C++ function Root::CMSLabel;
-#pragma link C++ function Root::myText;
+#pragma link C++ function Root::myText+;
 #pragma link C++ function Root::myBoxText;
 #pragma link C++ function Root::myMarkerText;
 #pragma link C++ function Root::SetCanvasStyle;
