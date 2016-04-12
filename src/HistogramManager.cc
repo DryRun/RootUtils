@@ -4,10 +4,29 @@
 #include "MyTools/RootUtils/interface/HistogramManager.h"
 
 namespace Root {
-	HistogramManager::HistogramManager(edm::Service<TFileService> *p_fs) : fs_(p_fs) {
+	HistogramManager::HistogramManager() : fs_(p_fs) {
+		fs_ = 0;
+		tfile_ = 0;
 	}
 
-	HistogramManager::~HistogramManager() {}
+	HistogramManager::~HistogramManager() {
+		if (!fs_) {
+			th1f_.clear();
+			th1d_.clear();
+			th2f_.clear();
+			th2d_.clear();
+			th3f_.clear();
+			th3d_.clear();
+		}
+	}
+
+	void HistogramManager::AddTFileService(edm::Service<TFileService> *p_fs) {
+		if (tfile_) {
+			std::cerr << "[HistogramManager] ERROR : Attempt to add TFileService, but TFile has already been specified. The two are exclusive." << std::endl;
+			exit(1);
+		}
+		fs_ = p_fs;
+	}
 
 	TH1F* HistogramManager::AddTH1F(TString p_name, TString p_title, TString p_xaxistitle, Int_t nbinsX, double minX, double maxX) {
 		CheckName(p_name);
@@ -22,8 +41,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH1F;
 
-		th1f_[p_key] = (*fs_)->make<TH1F>(p_name, p_title, nbinsX, minX, maxX);
-		th1f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th1f_[p_key] = (*fs_)->make<TH1F>(p_name, p_title, nbinsX, minX, maxX);
+		} else {
+			th1f_[p_key] = new TH1F(p_name, p_title, nbinsX, minX, maxX);			
+			th1f_[p_key]->SetDirectory(0);
+		}
 		th1f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th1f_[p_key]->Sumw2();
 		th1_[p_key] = static_cast<TH1*>(th1f_[p_key]);
@@ -44,8 +67,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH1F;
 
-		th1f_[p_key] = (*fs_)->make<TH1F>(p_name, p_title, nbinsX, bins);
-		th1f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th1f_[p_key] = (*fs_)->make<TH1F>(p_name, p_title, nbinsX, bins);
+		} else {
+			th1f_[p_key] = new TH1F(p_name, p_title, nbinsX, bins);			
+			th1f_[p_key]->SetDirectory(0);
+		}
 		th1f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th1f_[p_key]->Sumw2();
 		th1_[p_key] = static_cast<TH1*>(th1f_[p_key]);
@@ -66,8 +93,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH1D;
 
-		th1d_[p_key] = (*fs_)->make<TH1D>(p_name, p_title, nbinsX, minX, maxX);
-		th1d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th1d_[p_key] = (*fs_)->make<TH1D>(p_name, p_title, nbinsX, minX, maxX);
+		} else {
+			th1d_[p_key] = new TH1D(p_name, p_title, nbinsX, minX, maxX);			
+			th1d_[p_key]->SetDirectory(0);
+		}
 		th1d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th1d_[p_key]->Sumw2();
 		th1_[p_key] = static_cast<TH1*>(th1d_[p_key]);
@@ -87,8 +118,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH1D;
 
-		th1d_[p_key] = (*fs_)->make<TH1D>(p_name, p_title, nbinsX, bins);
-		th1d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th1d_[p_key] = (*fs_)->make<TH1D>(p_name, p_title, nbinsX, bins);
+		} else {
+			th1d_[p_key] = new TH1D(p_name, p_title, nbinsX, bins);			
+			th1d_[p_key]->SetDirectory(0);
+		}
 		th1d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th1d_[p_key]->Sumw2();
 		th1_[p_key] = static_cast<TH1*>(th1d_[p_key]);
@@ -109,8 +144,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2F;
 
-		th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY);
-		th2f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY);
+		} else {
+			th2f_[p_key] = new TH2F(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY);			
+			th2f_[p_key]->SetDirectory(0);
+		}
 		th2f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2f_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2f_[p_key]->Sumw2();
@@ -132,8 +171,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2F;
 
-		th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, binsX, nbinsY, minY, maxY);
-		th2f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, binsX, nbinsY, minY, maxY);
+		} else {
+			th2f_[p_key] = new TH2F(p_name, p_title, nbinsX, binsX, nbinsY, minY, maxY);			
+			th2f_[p_key]->SetDirectory(0);
+		}
 		th2f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2f_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2f_[p_key]->Sumw2();
@@ -155,8 +198,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2F;
 
-		th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, minX, maxX, nbinsY, binsY);
-		th2f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, minX, maxX, nbinsY, binsY);
+		} else {
+			th2f_[p_key] = new TH2F(p_name, p_title, nbinsX, minX, maxX, nbinsY, binsY);			
+			th2f_[p_key]->SetDirectory(0);
+		}
 		th2f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2f_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2f_[p_key]->Sumw2();
@@ -178,8 +225,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2F;
 
-		th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, binsX, nbinsY, binsY);
-		th2f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2f_[p_key] = (*fs_)->make<TH2F>(p_name, p_title, nbinsX, binsX, nbinsY, binsY);
+		} else {
+			th2f_[p_key] = new TH2F(p_name, p_title, nbinsX, binsX, nbinsY, binsY);			
+			th2f_[p_key]->SetDirectory(0);
+		}
 		th2f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2f_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2f_[p_key]->Sumw2();
@@ -201,8 +252,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2D;
 
-		th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY);
-		th2d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY);
+		} else {
+			th2d_[p_key] = new TH2D(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY);			
+			th2d_[p_key]->SetDirectory(0);
+		}
 		th2d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2d_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2d_[p_key]->Sumw2();
@@ -224,8 +279,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2D;
 
-		th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, binsX, nbinsY, minY, maxY);
-		th2d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, binsX, nbinsY, minY, maxY);
+		} else {
+			th2d_[p_key] = new TH2D(p_name, p_title, nbinsX, binsX, nbinsY, minY, maxY);			
+			th2d_[p_key]->SetDirectory(0);
+		}
 		th2d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2d_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2d_[p_key]->Sumw2();
@@ -247,8 +306,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2D;
 
-		th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, minX, maxX, nbinsY, binsY);
-		th2d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, minX, maxX, nbinsY, binsY);
+		} else {
+			th2d_[p_key] = new TH2D(p_name, p_title, nbinsX, minX, maxX, nbinsY, binsY);			
+			th2d_[p_key]->SetDirectory(0);
+		}
 		th2d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2d_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2d_[p_key]->Sumw2();
@@ -270,8 +333,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH2D;
 
-		th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, binsX, nbinsY, binsY);
-		th2d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th2d_[p_key] = (*fs_)->make<TH2D>(p_name, p_title, nbinsX, binsX, nbinsY, binsY);
+		} else {
+			th2d_[p_key] = new TH2D(p_name, p_title, nbinsX, binsX, nbinsY, binsY);			
+			th2d_[p_key]->SetDirectory(0);
+		}
 		th2d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th2d_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th2d_[p_key]->Sumw2();
@@ -289,8 +356,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH3F;
 
-		th3f_[p_key] = (*fs_)->make<TH3F>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY, nbinsZ, minZ, maxZ);
-		th3f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th3f_[p_key] = (*fs_)->make<TH3F>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY, nbinsZ, minZ, maxZ);
+		} else {
+			th3f_[p_key] = new TH3F(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY, nbinsZ, minZ, maxZ);			
+			th3f_[p_key]->SetDirectory(0);
+		}
 		th3f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th3f_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th3f_[p_key]->GetZaxis()->SetTitle(p_zaxistitle);
@@ -309,8 +380,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH3F;
 
-		th3f_[p_key] = (*fs_)->make<TH3F>(p_name, p_title, nbinsX, binsX, nbinsY, binsY, nbinsZ, binsZ);
-		th3f_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th3f_[p_key] = (*fs_)->make<TH3F>(p_name, p_title, nbinsX, binsX, nbinsY, binsY, nbinsZ, binsZ);
+		} else {
+			th3f_[p_key] = new TH3F(p_name, p_title, nbinsX, binsX, nbinsY, binsY, nbinsZ, binsZ);			
+			th3f_[p_key]->SetDirectory(0);
+		}
 		th3f_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th3f_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th3f_[p_key]->GetZaxis()->SetTitle(p_zaxistitle);
@@ -329,8 +404,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH3D;
 
-		th3d_[p_key] = (*fs_)->make<TH3D>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY, nbinsZ, minZ, maxZ);
-		th3d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th3d_[p_key] = (*fs_)->make<TH3D>(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY, nbinsZ, minZ, maxZ);
+		} else {
+			th3d_[p_key] = new TH3D(p_name, p_title, nbinsX, minX, maxX, nbinsY, minY, maxY, nbinsZ, minZ, maxZ);			
+			th3d_[p_key]->SetDirectory(0);
+		}
 		th3d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th3d_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th3d_[p_key]->GetZaxis()->SetTitle(p_zaxistitle);
@@ -349,8 +428,12 @@ namespace Root {
 		}
 		histogram_types_[p_key] = t_TH3D;
 
-		th3d_[p_key] = (*fs_)->make<TH3D>(p_name, p_title, nbinsX, binsX, nbinsY, binsY, nbinsZ, binsZ);
-		th3d_[p_key]->SetDirectory(0);
+		if (fs_) {
+			th3d_[p_key] = (*fs_)->make<TH3D>(p_name, p_title, nbinsX, binsX, nbinsY, binsY, nbinsZ, binsZ);
+		} else {
+			th3d_[p_key] = new TH3D(p_name, p_title, nbinsX, binsX, nbinsY, binsY, nbinsZ, binsZ);			
+			th3d_[p_key]->SetDirectory(0);
+		}
 		th3d_[p_key]->GetXaxis()->SetTitle(p_xaxistitle);
 		th3d_[p_key]->GetYaxis()->SetTitle(p_yaxistitle);
 		th3d_[p_key]->GetZaxis()->SetTitle(p_zaxistitle);
@@ -397,10 +480,6 @@ namespace Root {
 	}
 
 	void HistogramManager::SaveAll(TFile *f) {
-		if (fs_) {
-			std::cerr << "[HistogramManager] WARNING : SaveAll called, but histograms are always saved to a TFileService! Saving anyways, but this is redundant and less supported." << std::endl;
-		}
-
 		bool make_backup_file = false;
 		if (f == 0x0) {
 			std::cerr << "[HistogramManager] WARNING : Save file does not exist! Creating a backup file at HistogramManagerBackup.root." << std::endl;

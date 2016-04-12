@@ -12,7 +12,7 @@
 #include "MyTools/RootUtils/interface/StandaloneJobInfoContainer.h"
 #include "MyTools/RootUtils/interface/MessageService.h"
 #include "MyTools/RootUtils/interface/RootColors.h"
-//#include "MyTools/RootUtils/interface/HistogramManager.h"
+#include "MyTools/RootUtils/interface/HistogramManager.h"
 #include "MyTools/RootUtils/interface/LocalDatasetLookup.h"
 #include "MyTools/RootUtils/interface/SeabornInterface.h"
 #include "MyTools/RootUtils/interface/SystematicsContainer.h"
@@ -51,7 +51,7 @@
 #pragma link C++ class StandaloneJobInfoContainer+;
 #pragma link C++ class Root::RootColors+;
 #pragma link C++ class Root::SeabornInterface+;
-//#pragma link C++ class Root::HistogramManager+;
+#pragma link C++ class Root::HistogramManager+;
 #pragma link C++ class LocalDatasetLookup+;
 #pragma link C++ class Root::SystematicsContainer;
 #pragma link C++ class Root::SystematicsManager;
