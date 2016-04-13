@@ -2,11 +2,12 @@
 #define HistogramManager_cxx
 
 #include "MyTools/RootUtils/interface/HistogramManager.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 namespace Root {
-	HistogramManager::HistogramManager() : fs_(p_fs) {
+	HistogramManager::HistogramManager() {
 		fs_ = 0;
-		tfile_ = 0;
 	}
 
 	HistogramManager::~HistogramManager() {
@@ -21,10 +22,6 @@ namespace Root {
 	}
 
 	void HistogramManager::AddTFileService(edm::Service<TFileService> *p_fs) {
-		if (tfile_) {
-			std::cerr << "[HistogramManager] ERROR : Attempt to add TFileService, but TFile has already been specified. The two are exclusive." << std::endl;
-			exit(1);
-		}
 		fs_ = p_fs;
 	}
 
@@ -490,17 +487,17 @@ namespace Root {
 		f->cd();
 
 		for (std::vector<TString>::iterator it = key_list_.begin(); it != key_list_.end(); ++it) {
-			if (IsA(*it) == t_TH1F) {
+			if (HistIsA(*it) == t_TH1F) {
 				static_cast<TH1F*>(th1_[*it])->Write(th1_[*it]->GetName());
-			} else if (IsA(*it) == t_TH1D) {
+			} else if (HistIsA(*it) == t_TH1D) {
 				static_cast<TH1D*>(th1_[*it])->Write(th1_[*it]->GetName());
-			} else if (IsA(*it) == t_TH2F) {
+			} else if (HistIsA(*it) == t_TH2F) {
 				static_cast<TH2F*>(th1_[*it])->Write(th1_[*it]->GetName());
-			} else if (IsA(*it) == t_TH2D) {
+			} else if (HistIsA(*it) == t_TH2D) {
 				static_cast<TH2D*>(th1_[*it])->Write(th1_[*it]->GetName());
-			} else if (IsA(*it) == t_TH3F) {
+			} else if (HistIsA(*it) == t_TH3F) {
 				static_cast<TH3F*>(th1_[*it])->Write(th1_[*it]->GetName());
-			} else if (IsA(*it) == t_TH3D) {
+			} else if (HistIsA(*it) == t_TH3D) {
 				static_cast<TH3D*>(th1_[*it])->Write(th1_[*it]->GetName());
 			}
 			// Do we need to do this to ensure the HistogramManager keeps ownership?
@@ -514,10 +511,6 @@ namespace Root {
 	}
  
 	void HistogramManager::CheckName(TString p_name) {
-		if (!fs_) {
-			std::cerr << "[HistogramManager] ERROR : Attempt to register histogram without setting TFileService first." << std::endl;
-			exit(1);
-		}
 		if (std::find(key_list_.begin(), key_list_.end(), p_name) != key_list_.end()) {
 			std::cerr << "[HistogramManager] ERROR : Attempt to add already existing histogram " << p_name << ". Please use a unique name." << std::endl;
 			std::exit(1);
@@ -528,7 +521,7 @@ namespace Root {
 		key_list_.push_back(p_name);
 	}
 
-	HistogramManager::HistogramType HistogramManager::IsA(TString p_key) {
+	HistogramManager::HistogramType HistogramManager::HistIsA(TString p_key) {
 		return histogram_types_[p_key];
 	}
 

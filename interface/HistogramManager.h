@@ -16,8 +16,13 @@
 #include <TH3D.h>
 #include <TFile.h>
 
-#include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
+namespace edm {
+	template<class T>
+	class Service;
+}
+class TFileService;
+//#include "FWCore/ServiceRegistry/interface/Service.h"
+//#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 namespace Root {
 
@@ -35,11 +40,24 @@ namespace Root {
 
 		/*** Public Methods ***/
 	public:
-		HistogramManager(edm::Service<TFileService> *p_fs);
+		HistogramManager();
 		~HistogramManager();
 
+		/*** Setup functions. CALL BEFORE CREATING ANY HISTOGRAMS! ***/
+		/**
+		 * Create the histograms through a TFileService.
+		 * @param p_fs Pointer to existing TFileService
+		 */
+		void AddTFileService(edm::Service<TFileService> *p_fs);
+
+		/**
+		 * Add a prefix to the name of all histograms.
+		 * @param p_prefix Prefix
+		 */
 		void AddPrefix(TString p_prefix);
 
+
+		/*** Histogram creation and access ***/
 		TH1F* AddTH1F(TString p_name, TString p_title, TString p_xaxistitle, Int_t nbinsX, double minX, double maxX);
 		TH1F* AddTH1F(TString p_name, TString p_title, TString p_xaxistitle, Int_t nbinsX, double *bins);
 		TH1D* AddTH1D(TString p_name, TString p_title, TString p_xaxistitle, Int_t nbinsX, double minX, double maxX);
@@ -82,14 +100,6 @@ namespace Root {
 		TH3D* GetTH3D(TString p_name);
 
 		/**
-		 * Add a pointer to an EL::Worker to save the output automatically
-		 * @param p_wk [description]
-		 */
-		inline void SetFileService(edm::Service<TFileService> *p_fs) {
-			fs_ = p_fs;
-		}
-
-		/**
 		 * Save all histograms to an existing file. It is allowed to do this in conjunction with SetELOutput.
 		 * @param f Open TFile for histogram saving.
 		 */
@@ -97,7 +107,7 @@ namespace Root {
 
 		void CheckName(TString p_name);
 
-		HistogramType IsA(TString p_key);
+		HistogramType HistIsA(TString p_key);
 
 		/*** Private Methods ***/
 	private:
