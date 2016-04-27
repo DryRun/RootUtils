@@ -36,7 +36,7 @@ Example TPython commands:
 
 	void SeabornInterface::Initialize() {
 		std::auto_ptr<SimpleConfiguration> m_save_colors(new SimpleConfiguration());
-		m_save_colors->LoadConfiguration("$ROOTCOREBIN/data/RootUtils/SeabornInterface/ColorPalettes.xml");
+		m_save_colors->LoadConfiguration("$CMSSW_BASE/src/MyTools/RootUtils/data/SeabornInterface/ColorPalettes.xml");
 		for (std::vector<TString>::iterator it_palette_name = m_save_colors->GetListOfLists()->begin(); it_palette_name != m_save_colors->GetListOfLists()->end(); ++it_palette_name) {
 			m_palettes_.push_back(*it_palette_name);
 			for (std::vector<std::pair<TString, TString> >::iterator it_color_rgb = m_save_colors->GetList(*it_palette_name)->begin(); it_color_rgb != m_save_colors->GetList(*it_palette_name)->end(); ++it_color_rgb) {
