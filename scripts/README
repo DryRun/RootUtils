@@ -1,0 +1,22 @@
+
+First initialize CMSSW environment for a CMSSW release that is
+accessible from the worker nodes (e.g. in AFS).  Example:
+
+cd ~/CMSSW_4_2_2_patch1
+export SCRAM_ARCH=slc5_amd64_gcc434
+eval `scramv1 runtime -sh`
+
+
+Then move to a scratch directory for condor to write job files to for this job.
+
+Create the submit file.
+
+condor_cmsRun  --file-list=dataset1 /path/to/cmsRun_discard_output.sh /path/to/merge_cfg.py maxEvents=10
+
+condor_submit submit
+
+In our cluster in T2_US_Wisconsin, we have some batch slots configured
+for fast scheduling of analysis jobs.  To use those, we can simply
+add a few condor commands when generating the submit file:
+
+condor_cmsRun  --file-list=dataset1 'requirements = IsFastSlot' '+IsFastQueueJob=true'  /path/to/cmsRun_discard_output.sh /path/to/merge_cfg.py maxEvents=10

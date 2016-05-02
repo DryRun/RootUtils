@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import getopt
+import string
+
+def PrintUsage():
+	sys.stderr.write("""
+USAGE: """ + sys.argv[0] + """ {condor_cmsRun options} [condor_submit commands] cmsRun_or_wrapper_script cfg_file [cfg options]
+
+condor_cmsRun options:
+  --file-list=fname             (file containing list of data files, one per line)
+  --submit-file=submit          (condor submit file to write to)
+  --extra-files=file1,file2,... (additional input files to send with job)
+  --files-per-job=1             (number of data files to process per job)
+
+condor_submit commands are expected to have the form: name=value
+
+The cfg_file is expected to accept inputFiles and outputFile as options.
+
+Before submitting the submit file to condor, CMSSW environment must
+be set up, and this installation of CMSSW must be accessible from
+the Condor worker nodes unless a suitable wrapper script is used
+to set up CMSSW from some other location on the worker node.
+
+Example usage of this script:
+
+condor_cmsRun --file-list=input_files 'requirements=IsFastSlot' '+IsFastQueueJob=true' /path/to/cmsRun /path/to/cfg.py maxEvents=10
+""")
+
+long_options = [
+	"file-list=",
+	"submit-file=",
+	"extra-files=",
+	"files-per-job=",
+	"help"
+]
+
+options,args = getopt.getopt(sys.argv[1:],"h",long_options)
+
+file_list_fname = None
+submit_fname = "submit"
+extra_files = ""
+files_per_job=1
+
+for option,value in options:
+	if option == "-h" or option == "--help":
+		PrintUsage()
+		sys.exit(0)
+	if option == "--file-list":
+		file_list_fname = os.path.expanduser(value)
+	if option == "--submit-file":
+		submit_fname = value
+	if option == "--extra-files":
+		extra_files = value
+	if option == "--files-per-job":
+		files_per_job = int(value)
+
+condor_submit_commands = ""
+while len(args) > 0 and args[0].find("=") >= 0:
+	condor_submit_commands += "\n" + args.pop(0)
+
+if len(args) < 2:
+	sys.stderr.write("You must specify cmssw_executable and cfg_file.\n")
+	sys.exit(2)
+
+# Tar src directory
+os.system("tar -czvf src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/.git*")
+
+executable = args[0]
+executable = os.path.realpath(os.path.expanduser(executable))
+print "executable = " + executable
+
+cfg_file = args[1]
+cfg_file = os.path.realpath(os.path.expanduser(cfg_file))
+args[1] = os.path.basename(cfg_file)
+arguments = os.path.expandvars("$CMSSW_VERSION") + " "
+arguments += string.join(args[1:]," ")
+transfer_input_files = cfg_file
+
+if extra_files:
+	for fname in extra_files.split(","):
+		fname = os.path.realpath(os.path.expanduser(fname))
+		transfer_input_files += "," + fname
+
+if not file_list_fname:
+	sys.stderr.write("You must specify --file_list=<file>\n")
+	sys.exit(2)
+
+Flist = file(file_list_fname,"r")
+file_list = Flist.readlines()
+Flist.close()
+
+Fsubmit = file(submit_fname,"w")
+
+# Write the top part of the submit file, which
+# contains settings shared by all of the jobs.
+
+Fsubmit.write("executable = " + executable + "\n")
+Fsubmit.write("transfer_executable = true\n")
+Fsubmit.write("notification = never\n")
+Fsubmit.write("getenv = true\n")
+Fsubmit.write("should_transfer_files = yes\n")
+Fsubmit.write("when_to_transfer_output = on_exit\n")
+Fsubmit.write("output = job_$(Cluster).$(Process)_stdout\n")
+Fsubmit.write("error = job_$(Cluster).$(Process)_stderr\n")
+Fsubmit.write("log = job_$(Cluster).$(Process)_condor_log\n")
+
+Fsubmit.write("\n\n" + condor_submit_commands + "\n\n")
+
+# Write the per-job submit commands.
+
+file_index = 0
+while len(file_list) > file_index:
+	this_job_files = []
+	transfer_input_files = [cfg_file, executable, "src.tar.gz"]
+	while len(file_list) > file_index and len(this_job_files)<files_per_job:
+		fname = file_list[file_index]
+		file_index += 1
+		fname = fname.strip()
+		if not fname: continue
+
+		transfer_input_files.append(fname)
+		this_job_files.append(os.path.basename(fname))
+
+	if len(this_job_files)<1: continue
+	for x in extra_files:
+		transfer_input_files.append(os.path.realpath(os.path.expanduser(x)))
+	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
+	Fsubmit.write("arguments = " + arguments)
+	Fsubmit.write(" inputFiles=" + string.join(this_job_files,","))
+	Fsubmit.write(" outputFile=output_$(Cluster).$(Process).root")
+	Fsubmit.write("\nqueue\n\n")
+
+Fsubmit.close()
+
+print("Wrote condor submit description file: " + submit_fname)
+print("To submit it, run condor_submit " + submit_fname)
