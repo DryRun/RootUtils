@@ -9,6 +9,7 @@ export PYTHONHOME=/cvmfs/cms.cern.ch/slc6_amd64_gcc472/external/python/2.6.4/
 cmsrel "$1"
 tar -xzf src.tar.gz -C "$1/src"
 cd "$1/src"
+cmsenv
 scram b
 cd -
 
@@ -16,7 +17,7 @@ set -x
 
 echo "Starting at `date`"
 start=`date "+%s"`
-
+which cmsRun
 cmsRun "${@:2}"
 
 cmsRun_rc=$?
@@ -26,7 +27,7 @@ echo "cmsRun exited with status $cmsRun_rc"
 ls -ltr
 
 # discard all output
-rm -f *.root
+#rm -f *.root
 
 echo "Finished at `date`"
 finish=`date "+%s"`
