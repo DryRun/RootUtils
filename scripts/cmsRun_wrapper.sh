@@ -9,7 +9,8 @@ export PYTHONHOME=/cvmfs/cms.cern.ch/slc6_amd64_gcc472/external/python/2.6.4/
 cmsrel "$1"
 tar -xzf src.tar.gz -C "$1/src"
 cd "$1/src"
-scram b
+cmsenv
+scram b -j2
 cd -
 
 set -x
