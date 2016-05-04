@@ -43,6 +43,7 @@ file_list_fname = None
 submit_fname = "submit"
 extra_files = ""
 files_per_job=1
+output_tag = "output"
 
 for option,value in options:
 	if option == "-h" or option == "--help":
@@ -56,6 +57,8 @@ for option,value in options:
 		extra_files = value
 	if option == "--files-per-job":
 		files_per_job = int(value)
+	if option == "--output-tag":
+		output_tag = value
 
 condor_submit_commands = ""
 while len(args) > 0 and args[0].find("=") >= 0:
@@ -130,7 +133,7 @@ while len(file_list) > file_index:
 	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
 	Fsubmit.write("arguments = " + arguments)
 	Fsubmit.write(" inputFiles=" + string.join(this_job_files,","))
-	Fsubmit.write(" outputFile=output_$(Cluster).$(Process).root")
+	Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root")
 	Fsubmit.write("\nqueue\n\n")
 
 Fsubmit.close()

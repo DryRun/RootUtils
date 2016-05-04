@@ -17,7 +17,7 @@ set -x
 
 echo "Starting at `date`"
 start=`date "+%s"`
-
+which cmsRun
 cmsRun "${@:2}"
 
 cmsRun_rc=$?
@@ -27,7 +27,7 @@ echo "cmsRun exited with status $cmsRun_rc"
 ls -ltr
 
 # discard all output
-rm -f *.root
+#rm -f *.root
 
 echo "Finished at `date`"
 finish=`date "+%s"`
