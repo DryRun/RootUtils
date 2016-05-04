@@ -34,6 +34,7 @@ long_options = [
 	"submit-file=",
 	"extra-files=",
 	"files-per-job=",
+	"output-tag=",
 	"help"
 ]
 
