@@ -35,6 +35,7 @@ long_options = [
 	"extra-files=",
 	"files-per-job=",
 	"output-tag=",
+	"run",
 	"help"
 ]
 
@@ -45,6 +46,7 @@ submit_fname = "submit"
 extra_files = ""
 files_per_job=1
 output_tag = "output"
+run = False
 
 for option,value in options:
 	if option == "-h" or option == "--help":
@@ -60,6 +62,8 @@ for option,value in options:
 		files_per_job = int(value)
 	if option == "--output-tag":
 		output_tag = value
+	if option == "--run":
+		run = True
 
 condor_submit_commands = ""
 while len(args) > 0 and args[0].find("=") >= 0:
@@ -70,7 +74,7 @@ if len(args) < 2:
 	sys.exit(2)
 
 # Tar src directory
-os.system("tar -czvf src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/test/condor --exclude=*/.git*")
+os.system("tar -czf src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/test/condor --exclude=*/.git*")
 
 executable = args[0]
 executable = os.path.realpath(os.path.expanduser(executable))
@@ -88,13 +92,12 @@ if extra_files:
 		fname = os.path.realpath(os.path.expanduser(fname))
 		transfer_input_files += "," + fname
 
-if not file_list_fname:
-	sys.stderr.write("You must specify --file_list=<file>\n")
-	sys.exit(2)
-
-Flist = file(file_list_fname,"r")
-file_list = Flist.readlines()
-Flist.close()
+if file_list_fname:
+#	sys.stderr.write("You must specify --file_list=<file>\n")
+#	sys.exit(2)
+	Flist = file(file_list_fname,"r")
+	file_list = Flist.readlines()
+	Flist.close()
 
 Fsubmit = file(submit_fname,"w")
 
@@ -102,6 +105,7 @@ Fsubmit = file(submit_fname,"w")
 # contains settings shared by all of the jobs.
 
 Fsubmit.write("executable = " + executable + "\n")
+Fsubmit.write("request_memory = 3000\n")
 Fsubmit.write("transfer_executable = true\n")
 Fsubmit.write("notification = never\n")
 Fsubmit.write("getenv = false\n")
@@ -114,30 +118,41 @@ Fsubmit.write("log = job_$(Cluster).$(Process)_condor_log\n")
 Fsubmit.write("\n\n" + condor_submit_commands + "\n\n")
 
 # Write the per-job submit commands.
+if file_list_fname:
+	file_index = 0
+	while len(file_list) > file_index:
+		this_job_files = []
+		transfer_input_files = [cfg_file, executable, "src.tar.gz"]
+		while len(file_list) > file_index and len(this_job_files)<files_per_job:
+			fname = file_list[file_index]
+			file_index += 1
+			fname = fname.strip()
+			if not fname: continue
 
-file_index = 0
-while len(file_list) > file_index:
-	this_job_files = []
+			transfer_input_files.append(fname)
+			this_job_files.append(os.path.basename(fname))
+
+		if len(this_job_files)<1: continue
+		for x in extra_files:
+			transfer_input_files.append(os.path.realpath(os.path.expanduser(x)))
+		Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
+		Fsubmit.write("arguments = " + arguments)
+		Fsubmit.write(" inputFiles=" + string.join(this_job_files,","))
+		Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root")
+		Fsubmit.write("\nqueue\n\n")
+else:
+	# No input files
 	transfer_input_files = [cfg_file, executable, "src.tar.gz"]
-	while len(file_list) > file_index and len(this_job_files)<files_per_job:
-		fname = file_list[file_index]
-		file_index += 1
-		fname = fname.strip()
-		if not fname: continue
-
-		transfer_input_files.append(fname)
-		this_job_files.append(os.path.basename(fname))
-
-	if len(this_job_files)<1: continue
 	for x in extra_files:
 		transfer_input_files.append(os.path.realpath(os.path.expanduser(x)))
 	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
 	Fsubmit.write("arguments = " + arguments)
-	Fsubmit.write(" inputFiles=" + string.join(this_job_files,","))
-	Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root")
+	#Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root")
 	Fsubmit.write("\nqueue\n\n")
-
 Fsubmit.close()
 
 print("Wrote condor submit description file: " + submit_fname)
-print("To submit it, run condor_submit " + submit_fname)
+if run:
+	os.system("condor_submit " + submit_fname)
+else:
+	print("To submit it, run condor_submit " + submit_fname)
