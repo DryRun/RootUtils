@@ -34,7 +34,8 @@ long_options = [
 	"submit-file=",
 	"extra-files=",
 	"files-per-job=",
-	"output-tag=",
+	"output-file=", # Output filename. Supplied to cmsRun as 'outputFile=', so outputFile must be registered as an option in the cfg.
+	"output-tag=", # Output tag, for naming log files. 
 	"queue-n=",
 	"retar",
 	"run",
@@ -48,6 +49,7 @@ submit_fname = "submit"
 extra_files = ""
 files_per_job=1
 output_tag = "output"
+output_file = None
 run = False
 queue_n = 1
 retar = False
@@ -66,6 +68,8 @@ for option,value in options:
 		files_per_job = int(value)
 	if option == "--output-tag":
 		output_tag = value
+	if option == "--output-file":
+		output_file = value
 	if option == "--run":
 		run = True
 	if option == "--retar":
@@ -147,7 +151,8 @@ if file_list_fname:
 		Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
 		Fsubmit.write("arguments = " + arguments)
 		Fsubmit.write(" inputFiles=" + string.join(this_job_files,","))
-		Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root")
+		if output_file:
+			Fsubmit.write(" outputFile=" + output_file)
 		Fsubmit.write("\nqueue " + str(queue_n) + "\n\n")
 else:
 	# No input files
