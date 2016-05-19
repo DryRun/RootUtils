@@ -124,9 +124,9 @@ Fsubmit.write("notification = never\n")
 Fsubmit.write("getenv = false\n")
 Fsubmit.write("should_transfer_files = yes\n")
 Fsubmit.write("when_to_transfer_output = on_exit\n")
-Fsubmit.write("output = job_" + output_tag + "$(Cluster).$(Process)_stdout\n")
-Fsubmit.write("error = job_" + output_tag + "$(Cluster).$(Process)_stderr\n")
-Fsubmit.write("log = job_" + output_tag + "$(Cluster).$(Process)_condor_log\n")
+Fsubmit.write("output = job_" + output_tag + "_$(Cluster).$(Process)_stdout\n")
+Fsubmit.write("error = job_" + output_tag + "_$(Cluster).$(Process)_stderr\n")
+Fsubmit.write("log = job_" + output_tag + "_$(Cluster).$(Process)_condor_log\n")
 
 Fsubmit.write("\n\n" + condor_submit_commands + "\n\n")
 
@@ -144,7 +144,6 @@ if file_list_fname:
 
 			transfer_input_files.append(fname)
 			this_job_files.append(os.path.basename(fname))
-
 		if len(this_job_files)<1: continue
 		for x in extra_files:
 			transfer_input_files.append(os.path.realpath(os.path.expanduser(x)))
@@ -152,6 +151,7 @@ if file_list_fname:
 		Fsubmit.write("arguments = " + arguments)
 		Fsubmit.write(" inputFiles=" + string.join(this_job_files,","))
 		if output_file:
+			print "Writing outputFile=" + output_file
 			Fsubmit.write(" outputFile=" + output_file)
 		Fsubmit.write("\nqueue " + str(queue_n) + "\n\n")
 else:
@@ -161,7 +161,7 @@ else:
 		transfer_input_files.append(os.path.realpath(os.path.expanduser(x)))
 	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
 	Fsubmit.write("arguments = " + arguments)
-	#Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root")
+	#Fsubmit.write(" outputFile=" + output_tag + "_$(Cluster).$(Process).root") # Always specify by hand?
 	Fsubmit.write("\nqueue " + str(queue_n) + "\n\n")
 Fsubmit.close()
 
