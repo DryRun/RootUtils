@@ -87,7 +87,7 @@ if len(args) < 2:
 
 # Tar src directory
 if retar:
-	os.system("tar -czf src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/test/condor --exclude=*/.git*")
+	os.system("tar -czf src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
 
 executable = args[0]
 executable = os.path.realpath(os.path.expanduser(executable))
@@ -124,9 +124,9 @@ Fsubmit.write("notification = never\n")
 Fsubmit.write("getenv = false\n")
 Fsubmit.write("should_transfer_files = yes\n")
 Fsubmit.write("when_to_transfer_output = on_exit\n")
-Fsubmit.write("output = job_" + output_tag + "$(Cluster).$(Process)_stdout\n")
-Fsubmit.write("error = job_" + output_tag + "$(Cluster).$(Process)_stderr\n")
-Fsubmit.write("log = job_" + output_tag + "$(Cluster).$(Process)_condor_log\n")
+Fsubmit.write("output = job_" + output_tag + "_$(Cluster).$(Process)_stdout\n")
+Fsubmit.write("error = job_" + output_tag + "_$(Cluster).$(Process)_stderr\n")
+Fsubmit.write("log = job_" + output_tag + "_$(Cluster).$(Process)_condor_log\n")
 
 Fsubmit.write("\n\n" + condor_submit_commands + "\n\n")
 

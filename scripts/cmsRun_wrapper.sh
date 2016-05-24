@@ -10,7 +10,7 @@ cmsrel "$1"
 tar -xzf src.tar.gz -C "$1/src"
 cd "$1/src"
 cmsenv
-scram b -j2
+scram b -j2 USER_CXXFLAGS='-g'
 cd -
 
 set -x
