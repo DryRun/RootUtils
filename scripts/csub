@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import getopt
+import string
+
+def PrintUsage():
+	sys.stderr.write("""
+USAGE: """ + sys.argv[0] + """ {condor_run options} [condor_submit commands] command
+
+condor_run options:
+  --file-list=fname             (file containing list of data files, one per line)
+  --submit-file=submit          (condor submit file to write to)
+  --extra-files=file1,file2,... (additional input files to send with job)
+  --files-per-job=1             (number of data files to process per job)
+
+condor_submit commands are expected to have the form: name=value
+
+The cfg_file is expected to accept inputFiles and outputFile as options.
+
+Before submitting the submit file to condor, CMSSW environment must
+be set up, and this installation of CMSSW must be accessible from
+the Condor worker nodes unless a suitable wrapper script is used
+to set up CMSSW from some other location on the worker node.
+
+Example usage of this script:
+
+condor_run --file-list=input_files 'requirements=IsFastSlot' '+IsFastQueueJob=true' /path/to/cmsRun /path/to/cfg.py maxEvents=10
+""")
+
+long_options = [
+	"file-list=", # Text file with files to transfer (newline separated)
+	"submit-file=", # Name of condor submission file
+	"job-name=", # Job name, used for naming the output/log files. 
+	"queue-n=",
+	"retar",
+	"run",
+	"help"
+]
+
+options,args = getopt.getopt(sys.argv[1:],"h",long_options)
+
+file_list_fname = None
+submit_fname = "submit"
+job_name = "condor_job"
+run = False
+queue_n = 1
+retar = False
+
+for option,value in options:
+	if option == "-h" or option == "--help":
+		PrintUsage()
+		sys.exit(0)
+	if option == "--file-list":
+		file_list_fname = os.path.expanduser(value)
+	if option == "--submit-file":
+		submit_fname = value
+	if option == "--job-name":
+		job_name = value
+	if option == "--run":
+		run = True
+	if option == "--retar":
+		retar = True
+	if option == "--queue-n":
+		queue_n = int(value)
+
+condor_submit_commands = ""
+while len(args) > 0 and args[0].find("=") >= 0:
+	condor_submit_commands += "\n" + args.pop(0)
+
+if len(args) < 1:
+	sys.stderr.write("You must specify the executable.\n")
+	sys.exit(2)
+
+# Tar src directory
+if retar:
+	os.system("tar -czf ~/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
+
+executable = args[0]
+executable = os.path.realpath(os.path.expanduser(executable))
+print "executable = " + executable
+
+Fsubmit = file(submit_fname,"w")
+
+# Write the top part of the submit file, which
+# contains settings shared by all of the jobs.
+
+Fsubmit.write("executable = " + executable + "\n")
+Fsubmit.write("request_memory = 3000\n")
+Fsubmit.write("transfer_executable = true\n")
+Fsubmit.write("notification = never\n")
+Fsubmit.write("getenv = false\n")
+Fsubmit.write("should_transfer_files = yes\n")
+Fsubmit.write("when_to_transfer_output = on_exit\n")
+Fsubmit.write("output = " + job_name + "_$(Cluster).$(Process)_stdout\n")
+Fsubmit.write("error = " + job_name + "_$(Cluster).$(Process)_stderr\n")
+Fsubmit.write("log = " + job_name + "_$(Cluster).$(Process)_condor_log\n")
+
+Fsubmit.write("\n\n" + condor_submit_commands + "\n\n")
+
+# Make list of files to transfer to worker node
+if file_list_fname:
+#	sys.stderr.write("You must specify --file_list=<file>\n")
+#	sys.exit(2)
+	Flist = file(file_list_fname,"r")
+	file_list = Flist.readlines()
+	Flist.close()
+	this_job_files = []
+	transfer_input_files = [executable, "~/nobackup/src.tar.gz"].extend([x.strip() for x in file_list])
+	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
+arguments = string.join(args[1:]," ")
+Fsubmit.write("arguments = " + arguments)
+Fsubmit.write("\nqueue " + str(queue_n) + "\n\n")
+Fsubmit.close()
+
+print("Wrote condor submit description file: " + submit_fname)
+if run:
+	os.system("condor_submit " + submit_fname)
+else:
+	print("To submit it, run condor_submit " + submit_fname)

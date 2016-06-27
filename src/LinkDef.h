@@ -78,7 +78,6 @@
 #pragma link C++ class Root::RootColors+;
 #pragma link C++ class Root::SeabornInterface+;
 #pragma link C++ class Root::HistogramManager+;
-#pragma link C++ class LocalDatasetLookupC+;
 #pragma link C++ class Root::SystematicsContainer+;
 #pragma link C++ class Root::SystematicsManager+;
 #pragma link C++ namespace Constants+;

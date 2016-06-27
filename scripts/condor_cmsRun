@@ -87,7 +87,7 @@ if len(args) < 2:
 
 # Tar src directory
 if retar:
-	os.system("tar -czf src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
+	os.system("tar -czf /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
 
 executable = args[0]
 executable = os.path.realpath(os.path.expanduser(executable))
@@ -135,7 +135,7 @@ if file_list_fname:
 	file_index = 0
 	while len(file_list) > file_index:
 		this_job_files = []
-		transfer_input_files = [cfg_file, executable, "src.tar.gz"]
+		transfer_input_files = [cfg_file, executable, "/uscms/home/dryu/nobackup/src.tar.gz"]
 		while len(file_list) > file_index and len(this_job_files)<files_per_job:
 			fname = file_list[file_index]
 			file_index += 1
@@ -156,7 +156,7 @@ if file_list_fname:
 		Fsubmit.write("\nqueue " + str(queue_n) + "\n\n")
 else:
 	# No input files
-	transfer_input_files = [cfg_file, executable, "src.tar.gz"]
+	transfer_input_files = [cfg_file, executable, "/uscms/home/dryu/nobackup/src.tar.gz"]
 	for x in extra_files:
 		transfer_input_files.append(os.path.realpath(os.path.expanduser(x)))
 	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
