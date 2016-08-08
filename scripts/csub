@@ -1,121 +1,141 @@
 #!/usr/bin/env python
 
+# bsub-like interface to condor
+
 import os
 import sys
-import getopt
+import argparse
 import string
+import time
+timestamp = str(int(time.time()))
 
-def PrintUsage():
-	sys.stderr.write("""
-USAGE: """ + sys.argv[0] + """ {condor_run options} [condor_submit commands] command
+parser = argparse.ArgumentParser(description = 'Dijet mass spectrum fits')
+parser.add_argument('scripts', type=str, help='Script(s) to execute. Multiple scripts can be specified (comma-separated), which will be queued sequentially.')
+parser.add_argument('-f', '--file_list', type=str, help='Text file listing files to transfer (newline-separated)')
+parser.add_argument('-F', '--file_string', type=str, help='Files to transfer (comma-separated)')
+parser.add_argument('-m', '--mem', type=int, default=3000, help='Memory requirement (MB)')
+parser.add_argument('-l', '--log', type=str, help="Log file name")
+parser.add_argument('-s', '--submit_file', type=str, help="Submission file name")
+parser.add_argument('-e', '--env', type=str, help="Environment variables to carry to worker node")
+parser.add_argument('-d', '--working_directory', type=str, help="Working directory on submission node")
+parser.add_argument('-n', '--queue_n', type=int, default=1, help="Queue n jobs")
+parser.add_argument('--no_submit', action='store_true', help="Prepare jobs but don't submit")
+parser.add_argument('--cmssw', action='store_true', help='Transfer CMSSW libraries as a tarball')
+parser.add_argument('--cmssw_src', action='store_true', help='Transfer CMSSW src as a tarball, and compile on worker node')
+parser.add_argument('--no_retar', action='store_true', help='Use existing tarball')
+args = parser.parse_args()
 
-condor_run options:
-  --file-list=fname             (file containing list of data files, one per line)
-  --submit-file=submit          (condor submit file to write to)
-  --extra-files=file1,file2,... (additional input files to send with job)
-  --files-per-job=1             (number of data files to process per job)
+scripts = [os.path.realpath(x) for x in args.scripts.split(",")]
 
-condor_submit commands are expected to have the form: name=value
-
-The cfg_file is expected to accept inputFiles and outputFile as options.
-
-Before submitting the submit file to condor, CMSSW environment must
-be set up, and this installation of CMSSW must be accessible from
-the Condor worker nodes unless a suitable wrapper script is used
-to set up CMSSW from some other location on the worker node.
-
-Example usage of this script:
-
-condor_run --file-list=input_files 'requirements=IsFastSlot' '+IsFastQueueJob=true' /path/to/cmsRun /path/to/cfg.py maxEvents=10
-""")
-
-long_options = [
-	"file-list=", # Text file with files to transfer (newline separated)
-	"submit-file=", # Name of condor submission file
-	"job-name=", # Job name, used for naming the output/log files. 
-	"queue-n=",
-	"retar",
-	"run",
-	"help"
-]
-
-options,args = getopt.getopt(sys.argv[1:],"h",long_options)
-
-file_list_fname = None
-submit_fname = "submit"
-job_name = "condor_job"
-run = False
-queue_n = 1
-retar = False
-
-for option,value in options:
-	if option == "-h" or option == "--help":
-		PrintUsage()
-		sys.exit(0)
-	if option == "--file-list":
-		file_list_fname = os.path.expanduser(value)
-	if option == "--submit-file":
-		submit_fname = value
-	if option == "--job-name":
-		job_name = value
-	if option == "--run":
-		run = True
-	if option == "--retar":
-		retar = True
-	if option == "--queue-n":
-		queue_n = int(value)
-
-condor_submit_commands = ""
-while len(args) > 0 and args[0].find("=") >= 0:
-	condor_submit_commands += "\n" + args.pop(0)
-
-if len(args) < 1:
-	sys.stderr.write("You must specify the executable.\n")
-	sys.exit(2)
-
-# Tar src directory
-if retar:
-	os.system("tar -czf ~/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
-
-executable = args[0]
-executable = os.path.realpath(os.path.expanduser(executable))
-print "executable = " + executable
-
-Fsubmit = file(submit_fname,"w")
-
-# Write the top part of the submit file, which
-# contains settings shared by all of the jobs.
-
-Fsubmit.write("executable = " + executable + "\n")
-Fsubmit.write("request_memory = 3000\n")
-Fsubmit.write("transfer_executable = true\n")
-Fsubmit.write("notification = never\n")
-Fsubmit.write("getenv = false\n")
-Fsubmit.write("should_transfer_files = yes\n")
-Fsubmit.write("when_to_transfer_output = on_exit\n")
-Fsubmit.write("output = " + job_name + "_$(Cluster).$(Process)_stdout\n")
-Fsubmit.write("error = " + job_name + "_$(Cluster).$(Process)_stderr\n")
-Fsubmit.write("log = " + job_name + "_$(Cluster).$(Process)_condor_log\n")
-
-Fsubmit.write("\n\n" + condor_submit_commands + "\n\n")
+starting_directory = os.getcwd()
+if args.working_directory:
+	os.system("mkdir -pv " + args.working_directory)
+	os.chdir(args.working_directory)
 
 # Make list of files to transfer to worker node
-if file_list_fname:
-#	sys.stderr.write("You must specify --file_list=<file>\n")
-#	sys.exit(2)
-	Flist = file(file_list_fname,"r")
-	file_list = Flist.readlines()
-	Flist.close()
-	this_job_files = []
-	transfer_input_files = [executable, "~/nobackup/src.tar.gz"].extend([x.strip() for x in file_list])
-	Fsubmit.write("transfer_input_files = " + string.join(transfer_input_files,",") + "\n")
-arguments = string.join(args[1:]," ")
-Fsubmit.write("arguments = " + arguments)
-Fsubmit.write("\nqueue " + str(queue_n) + "\n\n")
-Fsubmit.close()
+files_to_transfer = []
+files_to_transfer.extend(scripts)
 
-print("Wrote condor submit description file: " + submit_fname)
-if run:
-	os.system("condor_submit " + submit_fname)
+if args.cmssw_src:
+	if not args.no_retar:
+		tar_command = "tar -czf /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		os.system(tar_command)
+	files_to_transfer.append("/uscms/home/dryu/nobackup/src.tar.gz")
+
+if args.cmssw:
+	if not args.no_retar:
+		tar_command = "tar -czf /uscms/home/dryu/nobackup/cmssw.tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		os.system(tar_command)
+	files_to_transfer.append("/uscms/home/dryu/nobackup/cmssw.tar.gz")
+
+if args.file_list:
+	file_list_txt = open(args.file_list)
+	for line in file_list_txt:
+		files_to_transfer.append(line.rstrip())
+
+if args.file_string:
+	files_to_transfer.extend(args.file_string.split(","))
+
+env_to_transfer = {}
+if args.cmssw or args.cmssw_src:
+	env_to_transfer["CMSSW_VERSION"] = os.path.expandvars("$CMSSW_VERSION")
+	#env_to_transfer["PATH"] = os.path.expandvars("$PATH").replace(os.path.expandvars("$CMSSW_BASE"), "${_CONDOR_SCRATCH_DIR}/$CMSSW_VERSION")
+	#env_to_transfer["LD_LIBRARY_PATH"] = os.path.expandvars("$LD_LIBRARY_PATH").replace(os.path.expandvars("$CMSSW_BASE"), "${_CONDOR_SCRATCH_DIR}/$CMSSW_VERSION")
+	#env_to_transfer["PYTHONPATH"] = os.path.expandvars("$PYTHONPATH").replace(os.path.expandvars("$CMSSW_BASE"), "${_CONDOR_SCRATCH_DIR}/$CMSSW_VERSION")
+if args.env:
+	for this_env in args.env.split(","):
+		env_to_transfer[this_env] = os.path.expandvars("$" + this_env)
+
+# Make top-level script
+top_script_name = "condor_run_" + timestamp + ".sh"
+top_script = open(top_script_name, 'w')
+top_script.write("#!/bin/bash\n")
+for env_name, env_value in env_to_transfer.iteritems():
+	top_script.write("export " + env_name + "=" + env_value + "\n")
+if args.cmssw_src:
+	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
+	top_script.write("mkdir -p $CMSSW_VERSION/src\n")
+	top_script.write("tar -xzf src.tar.gz -C $CMSSW_VERSION/src\n")
+	top_script.write("cd $CMSSW_VERSION/src\n")
+	top_script.write("eval `scramv1 runtime -sh`\n")
+	top_script.write("scram b -j8\n")
+	top_script.write("cd -\n")
+if args.cmssw:
+	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
+	top_script.write("mkdir -p $CMSSW_VERSION\n")
+	top_script.write("tar -xzf cmssw.tar.gz -C $CMSSW_VERSION\n")
+	top_script.write("cd $CMSSW_VERSION/src\n")
+	top_script.write("scramv1 b ProjectRename\n")
+	top_script.write("eval `scramv1 runtime -sh`\n")
+	#top_script.write("scram b -j8\n")
+	top_script.write("cd -\n")
+	top_script.write("ls -lrth\n")
+	#top_script.write("ls -lrth $CMSSW_VERSION/python/*/*/*\n")
+	#top_script.write("export PYTHONPATH=${_CONDOR_SCRATCH_DIR}/$CMSSW_VERSION/python:$PYTHONPATH\n")
+
+top_script.write("scripts=(" + " ".join([os.path.basename(x) for x in scripts]).rstrip() + ")\n")
+top_script.write("source ${scripts[$1]}\n")
+#top_script.write("source " + os.path.basename(args.script) + "\n")
+top_script.write("echo \"Job done.\"\n")
+top_script.write("ls -lrth\n")
+top_script.close()
+files_to_transfer.append(top_script_name)
+
+# Make submission script
+if args.submit_file:
+	submission_file_name = args.submit_file
 else:
-	print("To submit it, run condor_submit " + submit_fname)
+	submission_file_name = "condor_submit_" + timestamp + ".sh"
+submission_file = open(submission_file_name, 'w')
+submission_file.write("executable = " + top_script_name + "\n")
+submission_file.write("request_memory = " + str(args.mem) + "\n")
+submission_file.write("transfer_executable = true\n")
+submission_file.write("notification = never\n")
+submission_file.write("getenv = false\n")
+submission_file.write("use_x509userproxy = true\n")
+submission_file.write("should_transfer_files = yes\n")
+submission_file.write("transfer_input_files=" + string.join(files_to_transfer,",") + "\n")
+submission_file.write("when_to_transfer_output = on_exit\n")
+if args.log:
+	log_stdout = args.log + ".$(Cluster).$(Process).stdout"
+	log_stderr = args.log + ".$(Cluster).$(Process).stderr"
+	log_condor = args.log + ".$(Cluster).$(Process).condor"
+else:
+	log_stdout = "log_" + timestamp + "_$(Cluster).$(Process).stdout"
+	log_stderr = "log_" + timestamp + "_$(Cluster).$(Process).stderr"
+	log_condor = "log_" + timestamp + "_$(Cluster).$(Process).condor"
+submission_file.write("output = " + log_stdout + "\n")
+submission_file.write("error = " + log_stderr + "\n")
+submission_file.write("log = " + log_condor + "\n")
+submission_file.write("arguments = $(Process)")
+submission_file.write("\nqueue " + str(len(scripts)) + "\n")
+
+#submission_file.write("\nqueue " + str(args.queue_n) + "\n")
+submission_file.close()
+
+if not args.no_submit:
+	print "Submitting condor jobs...",
+	os.system("condor_submit " + submission_file_name)
+	print "done."
+
+os.chdir(starting_directory)
