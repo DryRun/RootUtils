@@ -7,7 +7,7 @@ import sys
 import argparse
 import string
 import time
-timestamp = str(int(time.time()))
+timestamp = str(time.time()).replace(".","_")
 
 parser = argparse.ArgumentParser(description = 'Dijet mass spectrum fits')
 parser.add_argument('scripts', type=str, help='Script(s) to execute. Multiple scripts can be specified (comma-separated), which will be queued sequentially.')

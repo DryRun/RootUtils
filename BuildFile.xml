@@ -5,6 +5,7 @@
 <use   name="roothistmatrix"/>
 <use   name="roottmva"/>
 <use   name="rootxml"/>
+<use   name="roofitcore"/>
 <export>
   <lib   name="1"/>
 </export>

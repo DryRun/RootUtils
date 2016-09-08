@@ -19,6 +19,7 @@
 //#include "MyTools/RootUtils/interface/SystematicsManager.h"
 //#include "MyTools/RootUtils/interface/CommonFunctions.h"
 //#include "MyTools/RootUtils/interface/CanvasHelpers.h"
+//#include "MyTools/RootUtils/interface/RooCBPlusVoigtian.h"
 
 #ifdef __CINT__
 #pragma extra_include "MyTools/RootUtils/interface/Constants.h";
@@ -42,6 +43,7 @@
 #pragma extra_include "MyTools/RootUtils/interface/SystematicsManager.h";
 #pragma extra_include "MyTools/RootUtils/interface/CommonFunctions.h";
 #pragma extra_include "MyTools/RootUtils/interface/CanvasHelpers.h";
+#pragma extra_include "MyTools/RootUtils/interface/RooCBPlusVoigtian.h"
 
 
 #endif
@@ -88,5 +90,6 @@
 #pragma link C++ function Root::myBoxText+;
 #pragma link C++ function Root::myMarkerText+;
 #pragma link C++ function Root::SetCanvasStyle+;
+#pragma link C++ class RooCBPlusVoigtian+;
 //#pragma link C++ function Root::CombineHistogramBins;
 #endif
