@@ -9,6 +9,8 @@ namespace Root {
 
 	void CMSLabel(double x,double y,const char* text=NULL,Color_t color=1, double p_size_modifier = 1.); 
 
+	void CMSLabelTwoPane(double x,double y,const char* text=NULL,Color_t color=1, double p_size_modifier = 1.); 
+
 	void myText(double x,double y,Color_t color,const char *text, double p_size_modifier = 1.); 
 
 	void myBoxText(double x, double y,double boxsize,Int_t mcolor,const char *text); 

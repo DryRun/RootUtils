@@ -14,11 +14,32 @@ namespace Root {
   {
     TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
     l.SetNDC();
-    l.SetTextFont(72);
+    l.SetTextFont(62);
     l.SetTextSize(0.08 * p_size_modifier);
     l.SetTextColor(color);
 
-    double delx = 0.115*696*gPad->GetWh()/(472*gPad->GetWw()) * 1.7 * p_size_modifier;
+    double delx = 0.075*696*gPad->GetWh()/(472*gPad->GetWw()) * 1.7 * p_size_modifier;
+
+    l.DrawLatex(x,y,"CMS");
+    if (text) {
+      TLatex p; 
+      p.SetNDC();
+      p.SetTextFont(42);
+      p.SetTextSize(0.08 * p_size_modifier);
+      p.SetTextColor(color);
+      p.DrawLatex(x+delx,y,text);
+      //    p.DrawLatex(x,y,"#sqrt{s}=900GeV");
+    }
+  }
+  void CMSLabelTwoPane(double x,double y,const char* text,Color_t color, double p_size_modifier) 
+  {
+    TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.SetTextFont(62);
+    l.SetTextSize(0.08 * p_size_modifier);
+    l.SetTextColor(color);
+
+    double delx = 0.075*696*gPad->GetWh()/(472*gPad->GetWw()) * 0.85 * p_size_modifier;
 
     l.DrawLatex(x,y,"CMS");
     if (text) {
