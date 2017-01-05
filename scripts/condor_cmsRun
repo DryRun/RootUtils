@@ -87,7 +87,7 @@ if len(args) < 2:
 
 # Tar src directory
 if retar:
-	os.system("tar -czf /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
+	os.system("tar -czfh /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*")
 
 executable = args[0]
 executable = os.path.realpath(os.path.expanduser(executable))
