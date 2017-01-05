@@ -10,7 +10,7 @@ import time
 timestamp = str(time.time()).replace(".","_")
 
 parser = argparse.ArgumentParser(description = 'Dijet mass spectrum fits')
-parser.add_argument('scripts', type=str, help='Script(s) to execute. Multiple scripts can be specified (comma-separated), which will be queued sequentially.')
+parser.add_argument('script', type=str, help='Script to execute.') # No longer supported: Multiple scripts can be specified (comma-separated), which will be queued sequentially.
 parser.add_argument('-f', '--file_list', type=str, help='Text file listing files to transfer (newline-separated)')
 parser.add_argument('-F', '--file_string', type=str, help='Files to transfer (comma-separated)')
 parser.add_argument('-m', '--mem', type=int, default=3000, help='Memory requirement (MB)')
@@ -18,14 +18,14 @@ parser.add_argument('-l', '--log', type=str, help="Log file name")
 parser.add_argument('-s', '--submit_file', type=str, help="Submission file name")
 parser.add_argument('-e', '--env', type=str, help="Environment variables to carry to worker node")
 parser.add_argument('-d', '--working_directory', type=str, help="Working directory on submission node")
-parser.add_argument('-n', '--queue_n', type=int, default=1, help="Queue n jobs")
+parser.add_argument('-n', '--queue_n', type=int, default=1, help="Queue n jobs for each script (i.e. queue_n*len(scripts) total jobs). $(Process) is passed as $1 to each script.")
 parser.add_argument('--no_submit', action='store_true', help="Prepare jobs but don't submit")
 parser.add_argument('--cmssw', action='store_true', help='Transfer CMSSW libraries as a tarball')
 parser.add_argument('--cmssw_src', action='store_true', help='Transfer CMSSW src as a tarball, and compile on worker node')
 parser.add_argument('--no_retar', action='store_true', help='Use existing tarball')
 args = parser.parse_args()
 
-scripts = [os.path.realpath(x) for x in args.scripts.split(",")]
+#scripts = [os.path.realpath(x) for x in args.scripts.split(",")]
 
 starting_directory = os.getcwd()
 if args.working_directory:
@@ -34,17 +34,17 @@ if args.working_directory:
 
 # Make list of files to transfer to worker node
 files_to_transfer = []
-files_to_transfer.extend(scripts)
+files_to_transfer.append(args.script)
 
 if args.cmssw_src:
 	if not args.no_retar:
-		tar_command = "tar -czf /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		tar_command = "tar -hczf /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		os.system(tar_command)
 	files_to_transfer.append("/uscms/home/dryu/nobackup/src.tar.gz")
 
 if args.cmssw:
 	if not args.no_retar:
-		tar_command = "tar -czf /uscms/home/dryu/nobackup/cmssw.tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		tar_command = "tar -hczf /uscms/home/dryu/nobackup/cmssw.tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		os.system(tar_command)
 	files_to_transfer.append("/uscms/home/dryu/nobackup/cmssw.tar.gz")
 
@@ -93,8 +93,8 @@ if args.cmssw:
 	#top_script.write("ls -lrth $CMSSW_VERSION/python/*/*/*\n")
 	#top_script.write("export PYTHONPATH=${_CONDOR_SCRATCH_DIR}/$CMSSW_VERSION/python:$PYTHONPATH\n")
 
-top_script.write("scripts=(" + " ".join([os.path.basename(x) for x in scripts]).rstrip() + ")\n")
-top_script.write("source ${scripts[$1]}\n")
+#top_script.write("scripts=(" + " ".join([os.path.basename(x) for x in scripts]).rstrip() + ")\n")
+top_script.write("source " + os.path.basename(args.script) + " $1\n")
 #top_script.write("source " + os.path.basename(args.script) + "\n")
 top_script.write("echo \"Job done.\"\n")
 top_script.write("ls -lrth\n")
@@ -105,7 +105,7 @@ files_to_transfer.append(top_script_name)
 if args.submit_file:
 	submission_file_name = args.submit_file
 else:
-	submission_file_name = "condor_submit_" + timestamp + ".sh"
+	submission_file_name = "condor_submit_" + timestamp + ".jdl"
 submission_file = open(submission_file_name, 'w')
 submission_file.write("executable = " + top_script_name + "\n")
 submission_file.write("request_memory = " + str(args.mem) + "\n")
@@ -128,7 +128,7 @@ submission_file.write("output = " + log_stdout + "\n")
 submission_file.write("error = " + log_stderr + "\n")
 submission_file.write("log = " + log_condor + "\n")
 submission_file.write("arguments = $(Process)")
-submission_file.write("\nqueue " + str(len(scripts)) + "\n")
+submission_file.write("\nqueue " + str(args.queue_n) + "\n")
 
 #submission_file.write("\nqueue " + str(args.queue_n) + "\n")
 submission_file.close()
