@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import os
+import argparse
+
+parser = argparse.ArgumentParser(description='Do tarring for csub jobs')
+parser.add_argument('--cmssw', action='store_true', help='Tar CMSSW directory')
+parser.add_argument('--cmssw_src', action='store_true', help='Tar CMSSW/src directory')
+args = parser.parse_args()
+
+cmssw_version = os.path.expandvars("$CMSSW_VERSION")
+
+if args.cmssw_src:
+	tar_command = "tar -czf /uscms/home/dryu/nobackup/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+	os.system(tar_command)
+
+if args.cmssw:
+	tar_command = "tar -czf /uscms/home/dryu/nobackup/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+	os.system(tar_command)
