@@ -10,7 +10,7 @@ import time
 timestamp = str(time.time()).replace(".","_")
 
 parser = argparse.ArgumentParser(description = 'qsub-like interface to condor')
-parser.add_argument('scripts', type=str, help='Script(s) to execute. Multiple scripts can be specified (comma-separated), which will be queued sequentially.')
+parser.add_argument('script', type=str, help='Script to execute.')
 parser.add_argument('-f', '--file_list', type=str, help='Text file listing files to transfer (newline-separated)')
 parser.add_argument('-F', '--file_string', type=str, help='Files to transfer (comma-separated)')
 parser.add_argument('-m', '--mem', type=int, default=3000, help='Memory requirement (MB)')
