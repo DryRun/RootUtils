@@ -9,7 +9,7 @@ import string
 import time
 timestamp = str(time.time()).replace(".","_")
 
-parser = argparse.ArgumentParser(description = 'Dijet mass spectrum fits')
+parser = argparse.ArgumentParser(description = 'qsub-like interface to condor')
 parser.add_argument('scripts', type=str, help='Script(s) to execute. Multiple scripts can be specified (comma-separated), which will be queued sequentially.')
 parser.add_argument('-f', '--file_list', type=str, help='Text file listing files to transfer (newline-separated)')
 parser.add_argument('-F', '--file_string', type=str, help='Files to transfer (comma-separated)')
@@ -36,17 +36,19 @@ if args.working_directory:
 files_to_transfer = []
 files_to_transfer.extend(scripts)
 
+cmssw_version = os.path.expandvars("$CMSSW_VERSION")
+
 if args.cmssw_src:
 	if not args.no_retar:
-		tar_command = "tar -czf /uscms/home/dryu/nobackup/src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		tar_command = "tar -czf /uscms/home/dryu/nobackup/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		os.system(tar_command)
-	files_to_transfer.append("/uscms/home/dryu/nobackup/src.tar.gz")
+	files_to_transfer.append("/uscms/home/dryu/nobackup/" + cmssw_version + "_src.tar.gz")
 
 if args.cmssw:
 	if not args.no_retar:
-		tar_command = "tar -czf /uscms/home/dryu/nobackup/cmssw.tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		tar_command = "tar -czf /uscms/home/dryu/nobackup/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		os.system(tar_command)
-	files_to_transfer.append("/uscms/home/dryu/nobackup/cmssw.tar.gz")
+	files_to_transfer.append("/uscms/home/dryu/nobackup/" + cmssw_version + ".tar.gz")
 
 if args.file_list:
 	file_list_txt = open(args.file_list)
@@ -75,7 +77,7 @@ for env_name, env_value in env_to_transfer.iteritems():
 if args.cmssw_src:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION/src\n")
-	top_script.write("tar -xzf src.tar.gz -C $CMSSW_VERSION/src\n")
+	top_script.write("tar -xzf " + cmssw_version + "_src.tar.gz -C $CMSSW_VERSION/src\n")
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
 	top_script.write("scram b -j8\n")
@@ -83,7 +85,7 @@ if args.cmssw_src:
 if args.cmssw:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION\n")
-	top_script.write("tar -xzf cmssw.tar.gz -C $CMSSW_VERSION\n")
+	top_script.write("tar -xzf " + cmssw_version + ".tar.gz -C $CMSSW_VERSION\n")
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("scramv1 b ProjectRename\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
