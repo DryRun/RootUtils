@@ -19,6 +19,7 @@ parser.add_argument('-s', '--submit_file', type=str, help="Submission file name"
 parser.add_argument('-e', '--env', type=str, help="Environment variables to carry to worker node")
 parser.add_argument('-d', '--working_directory', type=str, help="Working directory on submission node")
 parser.add_argument('-n', '--queue_n', type=int, default=1, help="Queue n jobs for each script (i.e. queue_n*len(scripts) total jobs). $(Process) is passed as $1 to each script.")
+parser.add_argument('-o', '--transfer_output', type=str, help="Specify specific output files to transfer back")
 parser.add_argument('--no_submit', action='store_true', help="Prepare jobs but don't submit")
 parser.add_argument('--cmssw', action='store_true', help='Transfer CMSSW libraries as a tarball')
 parser.add_argument('--cmssw_src', action='store_true', help='Transfer CMSSW src as a tarball, and compile on worker node')
@@ -38,17 +39,20 @@ files_to_transfer.append(args.script)
 
 cmssw_version = os.path.expandvars("$CMSSW_VERSION")
 
+data_directory = "/uscms/home/dryu/nobackup/"
+#data_directory = "/home/dryu/data/"
+
 if args.cmssw_src:
 	if not args.no_retar:
-		tar_command = "tar -hczf /uscms/home/dryu/nobackup/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		os.system(tar_command)
-	files_to_transfer.append("/uscms/home/dryu/nobackup/" + cmssw_version + "_src.tar.gz")
+	files_to_transfer.append("" + data_directory + "/" + cmssw_version + "_src.tar.gz")
 
 if args.cmssw:
 	if not args.no_retar:
-		tar_command = "tar -hczf /uscms/home/dryu/nobackup/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		os.system(tar_command)
-	files_to_transfer.append("/uscms/home/dryu/nobackup/" + cmssw_version + ".tar.gz")
+	files_to_transfer.append("" + data_directory + "/" + cmssw_version + ".tar.gz")
 
 if args.file_list:
 	file_list_txt = open(args.file_list)
@@ -118,6 +122,8 @@ submission_file.write("use_x509userproxy = true\n")
 submission_file.write("should_transfer_files = yes\n")
 submission_file.write("transfer_input_files=" + string.join(files_to_transfer,",") + "\n")
 submission_file.write("when_to_transfer_output = on_exit\n")
+if args.transfer_output:
+	submission_file.write("transfer_output_files = " + args.transfer_output + "\n")
 if args.log:
 	log_stdout = args.log + ".$(Cluster).$(Process).stdout"
 	log_stderr = args.log + ".$(Cluster).$(Process).stderr"
