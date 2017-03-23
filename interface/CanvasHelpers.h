@@ -7,7 +7,7 @@
 
 namespace Root {
 
-	void CMSLabel(double x,double y,const char* text=NULL,Color_t color=1, double p_size_modifier = 1.); 
+  void CMSLabel(double x,double y,const char* text=NULL,Color_t color=1, double p_size_modifier = 1., double p_offset = 1.); 
 
 	void CMSLabelTwoPane(double x,double y,const char* text=NULL,Color_t color=1, double p_size_modifier = 1.); 
 

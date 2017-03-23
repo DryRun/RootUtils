@@ -10,7 +10,7 @@
 #include "TROOT.h"
 
 namespace Root {
-  void CMSLabel(double x,double y,const char* text,Color_t color, double p_size_modifier) 
+  void CMSLabel(double x,double y,const char* text,Color_t color, double p_size_modifier, double p_offset) 
   {
     TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
     l.SetNDC();
@@ -18,7 +18,7 @@ namespace Root {
     l.SetTextSize(0.08 * p_size_modifier);
     l.SetTextColor(color);
 
-    double delx = 0.075*696*gPad->GetWh()/(472*gPad->GetWw()) * 1.7 * p_size_modifier;
+    double delx = 0.075*696*gPad->GetWh()/(472*gPad->GetWw()) * 1.7 * p_size_modifier * p_offset;
 
     l.DrawLatex(x,y,"CMS");
     if (text) {

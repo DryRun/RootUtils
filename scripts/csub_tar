@@ -9,11 +9,13 @@ parser.add_argument('--cmssw_src', action='store_true', help='Tar CMSSW/src dire
 args = parser.parse_args()
 
 cmssw_version = os.path.expandvars("$CMSSW_VERSION")
+#data_directory = "/uscms/home/dryu/nobackup/"
+data_directory = "/home/dryu/data/"
 
 if args.cmssw_src:
-	tar_command = "tar -hczf /uscms/home/dryu/nobackup/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+	tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 	os.system(tar_command)
 
 if args.cmssw:
-	tar_command = "tar -hczf /uscms/home/dryu/nobackup/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+	tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 	os.system(tar_command)
