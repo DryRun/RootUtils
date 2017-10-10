@@ -45,5 +45,5 @@ if __name__ == "__main__":
 	parser.add_argument('tree_name', type=str, help="Tree name")
 	parser.add_argument('nfiles', type=int, help="Number of output files")
 	parser.add_argument('--output_base', type=str, help="Base of output filename (default is input filename)")
-	args = parse.parse_args()
+	args = parser.parse_args()
 	SplitTree(args.input_filename, args.tree_name, args.nfiles, args.output_base)
