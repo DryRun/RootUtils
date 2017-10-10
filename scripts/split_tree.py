@@ -31,7 +31,7 @@ def SplitTree(input_filename, tree_name, output_n, output_file_base=None):
 		output_file.cd()
 		output_tree.Fill()
 
-		if entry % events_per_output_tree == -1 or entry == input_tree.GetEntriesFast() - 1
+		if entry % events_per_output_tree == -1 or entry == input_tree.GetEntriesFast() - 1:
 			output_file.cd()
 			output_tree.Write()
 			output_file.Close()
