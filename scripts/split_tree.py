@@ -7,7 +7,7 @@ import math
 
 def CopyTree(input_tree, output_file):
 	output_file.cd()
-	output_tree = input_tree.CloneTree()
+	output_tree = input_tree.CloneTree(0)
 	input_tree.CopyAddresses(output_tree)
 	return output_tree
 
