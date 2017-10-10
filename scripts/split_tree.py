@@ -13,7 +13,7 @@ def CopyTree(input_tree, output_file):
 
 def SplitTree(input_filename, tree_name, output_n, output_file_base=None):
 	if not output_file_base:
-		output_file_base = os.path.basename(input_file)
+		output_file_base = os.path.basename(input_filename)
 		output_file_base.replace(".root", "")
 
 	input_file = TFile(input_filename, "READ")
