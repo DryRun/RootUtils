@@ -20,10 +20,12 @@ def SplitTree(input_filename, tree_name, output_n, output_file_base=None):
 	input_tree = input_file.Get(tree_name)
 
 	events_per_output_tree = int(math.ceil(float(input_tree.GetEntries()) / output_n))
+	print "events_per_output_tree = {}".format(events_per_output_tree)
 	output_file_counter = 0
 	for entry in xrange(input_tree.GetEntriesFast()):
 		if entry % events_per_output_tree == 0:
 			# Make new file and tree
+			print "Creating new file: {}".format(output_file_base + str(output_file_counter) + ".root")
 			output_file = TFile(output_file_base + str(output_file_counter) + ".root", "RECREATE")
 			output_tree = CopyTree(input_tree, output_file)
 		input_file.cd()
