@@ -81,10 +81,10 @@ namespace Root {
     canvasStyle->SetPaperSize(20,26);
 
     // set margin sizes
-    canvasStyle->SetPadTopMargin(0.05);
+    canvasStyle->SetPadTopMargin(0.1);
     canvasStyle->SetPadRightMargin(0.05);
     canvasStyle->SetPadBottomMargin(0.16);
-    canvasStyle->SetPadLeftMargin(0.16);
+    canvasStyle->SetPadLeftMargin(0.12);
 
     // set title offsets (for axis label)
     canvasStyle->SetTitleXOffset(1.4);
