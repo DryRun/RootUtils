@@ -8,6 +8,8 @@ import argparse
 import string
 import time
 timestamp = str(time.time()).replace(".","_")
+sys.path.insert(0, os.path.expandvars("$CMSSW_BASE/src/MyTools/RootUtils/scripts"))
+from csub_tar import make_tarball, get_tarball_path
 
 parser = argparse.ArgumentParser(description = 'qsub-like interface to condor')
 parser.add_argument('script', type=str, help='Script to execute.')
@@ -45,15 +47,17 @@ data_directory = "/uscms/home/dryu/nobackup/"
 
 if args.cmssw_src:
 	if not args.no_retar:
-		tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
-		os.system(tar_command)
-	files_to_transfer.append("" + data_directory + "/" + cmssw_version + "_src.tar.gz")
+		make_tarball(True)
+		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		#os.system(tar_command)
+	files_to_transfer.append(get_tarball_path(True))
 
 if args.cmssw:
 	if not args.no_retar:
-		tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
-		os.system(tar_command)
-	files_to_transfer.append("" + data_directory + "/" + cmssw_version + ".tar.gz")
+		make_tarball(False)
+		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		#os.system(tar_command)
+	files_to_transfer.append(get_tarball_path(False))
 
 if args.file_list:
 	file_list_txt = open(args.file_list)
@@ -84,7 +88,7 @@ for env_name, env_value in env_to_transfer.iteritems():
 if args.cmssw_src:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION/src\n")
-	top_script.write("tar -xzf " + cmssw_version + "_src.tar.gz -C $CMSSW_VERSION/src\n")
+	top_script.write("tar -xzf {} -C $CMSSW_VERSION/src\n".format(os.path.basename(get_tarball_path(True))))
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
 	top_script.write("scram b -j8\n")
@@ -92,7 +96,8 @@ if args.cmssw_src:
 if args.cmssw:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION\n")
-	top_script.write("tar -xzf " + cmssw_version + ".tar.gz -C $CMSSW_VERSION\n")
+	top_script.write("tar -xzf {} -C $CMSSW_VERSION\n".format(os.path.basename(get_tarball_path(False))))
+	top_script.write("ls -lrth $CMSSW_VERSION\n")
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("scramv1 b ProjectRename\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
