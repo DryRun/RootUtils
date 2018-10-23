@@ -24,7 +24,6 @@ def make_tarball(args):
 		return
 	os.system(tar_command)
 
-
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Do tarring for csub jobs')
 	parser.add_argument('--cmssw', action='store_true', help='Tar CMSSW directory')
