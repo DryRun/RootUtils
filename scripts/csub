@@ -48,14 +48,14 @@ data_directory = "/uscms/home/dryu/nobackup/"
 
 if args.cmssw_src:
 	if not args.no_retar:
-		make_tarball(True)
+		make_tarball(args)
 		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		#os.system(tar_command)
 	files_to_transfer.append(get_tarball_path(True))
 
 if args.cmssw:
 	if not args.no_retar:
-		make_tarball(False)
+		make_tarball(args)
 		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		#os.system(tar_command)
 	files_to_transfer.append(get_tarball_path(False))
