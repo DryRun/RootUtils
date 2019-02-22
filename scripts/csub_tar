@@ -3,19 +3,31 @@
 import os
 import argparse
 
-parser = argparse.ArgumentParser(description='Do tarring for csub jobs')
-parser.add_argument('--cmssw', action='store_true', help='Tar CMSSW directory')
-parser.add_argument('--cmssw_src', action='store_true', help='Tar CMSSW/src directory')
-args = parser.parse_args()
+cmssw_base_pieces = os.path.expandvars("$CMSSW_BASE").split("/")
+tarball_name = "{}_{}".format(cmssw_base_pieces[-2], cmssw_base_pieces[-1])
+#cmssw_version = os.path.expandvars("$CMSSW_VERSION")
+tarball_directory = "/uscms/home/dryu/nobackup/tarballs"
+#tarball_directory = "/home/dryu/data/tarballs"
 
-cmssw_version = os.path.expandvars("$CMSSW_VERSION")
-#data_directory = "/uscms/home/dryu/nobackup/"
-data_directory = "/home/dryu/data/"
+def get_tarball_path(cmssw_src=False):
+	if cmssw_src:
+		return "{}/{}_src.tar.gz".format(tarball_directory, tarball_name)
+	else:
+		return "{}/{}.tar.gz".format(tarball_directory, tarball_name)
 
-if args.cmssw_src:
-	tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+def make_tarball(args):
+	if args.cmssw_src:
+		tar_command = "tar -hczf {} -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*".format(get_tarball_path(True))
+	elif args.cmssw:
+		tar_command = "tar -hczf {} -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*".format(get_tarball_path(False))
+	else:
+		return
 	os.system(tar_command)
 
-if args.cmssw:
-	tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
-	os.system(tar_command)
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='Do tarring for csub jobs')
+	parser.add_argument('--cmssw', action='store_true', help='Tar CMSSW directory')
+	parser.add_argument('--cmssw_src', action='store_true', help='Tar CMSSW/src directory')
+	args = parser.parse_args()
+
+	make_tarball(args)

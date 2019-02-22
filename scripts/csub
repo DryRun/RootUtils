@@ -8,6 +8,7 @@ import argparse
 import string
 import time
 timestamp = str(time.time()).replace(".","_")
+<<<<<<< HEAD
 from csub_tar import make_tarball, get_tarball_path
 
 #####################
@@ -41,6 +42,10 @@ def make_tarball(args):
 ###############
 ### Action! ###
 ###############
+=======
+sys.path.insert(0, os.path.expandvars("$CMSSW_BASE/src/MyTools/RootUtils/scripts"))
+from csub_tar import make_tarball, get_tarball_path
+>>>>>>> 98cc29d5a9366d66c09942bab998e7ce93961319
 
 parser = argparse.ArgumentParser(description = 'qsub-like interface to condor')
 parser.add_argument('script', type=str, help='Script to execute.')
@@ -84,14 +89,22 @@ cmssw_version = os.path.expandvars("$CMSSW_VERSION")
 
 if args.cmssw_src:
 	if not args.no_retar:
+<<<<<<< HEAD
 		make_tarball(True)
+=======
+		make_tarball(args)
+>>>>>>> 98cc29d5a9366d66c09942bab998e7ce93961319
 		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		#os.system(tar_command)
 	files_to_transfer.append(get_tarball_path(True))
 
 if args.cmssw:
 	if not args.no_retar:
+<<<<<<< HEAD
 		make_tarball(False)
+=======
+		make_tarball(args)
+>>>>>>> 98cc29d5a9366d66c09942bab998e7ce93961319
 		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
 		#os.system(tar_command)
 	files_to_transfer.append(get_tarball_path(False))
@@ -125,7 +138,11 @@ for env_name, env_value in env_to_transfer.iteritems():
 if args.cmssw_src:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION/src\n")
+<<<<<<< HEAD
 	top_script.write("tar -xzf {} -C $CMSSW_VERSION/src\n".format(get_tarball_path(True)))
+=======
+	top_script.write("tar -xzf {} -C $CMSSW_VERSION/src\n".format(os.path.basename(get_tarball_path(True))))
+>>>>>>> 98cc29d5a9366d66c09942bab998e7ce93961319
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
 	top_script.write("scram b -j8\n")
@@ -133,7 +150,12 @@ if args.cmssw_src:
 if args.cmssw:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION\n")
+<<<<<<< HEAD
 	top_script.write("tar -xzf {} -C $CMSSW_VERSION\n".format(get_tarball_path(False)))
+=======
+	top_script.write("tar -xzf {} -C $CMSSW_VERSION\n".format(os.path.basename(get_tarball_path(False))))
+	top_script.write("ls -lrth $CMSSW_VERSION\n")
+>>>>>>> 98cc29d5a9366d66c09942bab998e7ce93961319
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("scramv1 b ProjectRename\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
@@ -167,8 +189,12 @@ submission_file.write("should_transfer_files = yes\n")
 submission_file.write("transfer_input_files=" + string.join(files_to_transfer,",") + "\n")
 submission_file.write("when_to_transfer_output = on_exit\n")
 submission_file.write("+JobFlavour = \"{}\"\n".format(args.time_limit))
+<<<<<<< HEAD
 
 ttime_if args.transfer_output:
+=======
+if args.transfer_output:
+>>>>>>> 98cc29d5a9366d66c09942bab998e7ce93961319
 	submission_file.write("transfer_output_files = " + args.transfer_output + "\n")
 if args.log:
 	log_stdout = args.log + ".$(Cluster).$(Process).stdout"
