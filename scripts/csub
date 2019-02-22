@@ -8,6 +8,39 @@ import argparse
 import string
 import time
 timestamp = str(time.time()).replace(".","_")
+from csub_tar import make_tarball, get_tarball_path
+
+#####################
+### Configuration ###
+#####################
+cmssw_version = os.path.expandvars("$CMSSW_VERSION")
+tarball_directory = os.path.expandvars("$HOME/nobackup/tarballs")
+tarball_name = "tarball_{}".format(cmssw_version)
+tarball_path = "{}/{}".format(tarball_directory, tarball_name)
+
+#################
+### Functions ###
+#################
+
+def get_tarball_path(cmssw_src=False):
+	if cmssw_src:
+		return "{}/{}_src.tar.gz".format(tarball_directory, tarball_name)
+	else:
+		return "{}/{}.tar.gz".format(tarball_directory, tarball_name)
+
+def make_tarball(args):
+	if args.cmssw_src:
+		tar_command = "tar -hczf {} -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*".format(get_tarball_path(True))
+	elif args.cmssw:
+		tar_command = "tar -hczf {} -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*".format(get_tarball_path(False))
+	else:
+		return
+	os.system(tar_command)
+
+
+###############
+### Action! ###
+###############
 
 parser = argparse.ArgumentParser(description = 'qsub-like interface to condor')
 parser.add_argument('script', type=str, help='Script to execute.')
@@ -20,14 +53,23 @@ parser.add_argument('-e', '--env', type=str, help="Environment variables to carr
 parser.add_argument('-d', '--working_directory', type=str, help="Working directory on submission node")
 parser.add_argument('-n', '--queue_n', type=int, default=1, help="Queue n jobs for each script (i.e. queue_n*len(scripts) total jobs). $(Process) is passed as $1 to each script.")
 parser.add_argument('-o', '--transfer_output', type=str, help="Specify specific output files to transfer back")
+parser.add_argument('-t', '--time_limit', type=str, default="longlunch", help="JobFlavour option (espresso=20min, microcentury=1hr, longlunch=2hr, workday=8hr, tomorrow=1day, testmatch=3day, nextweek=1week")
 parser.add_argument('-p', '--pythonpath', action='store_true', help="Use the current PYTHONPATH")
 parser.add_argument('--no_submit', action='store_true', help="Prepare jobs but don't submit")
 parser.add_argument('--cmssw', action='store_true', help='Transfer CMSSW libraries as a tarball')
 parser.add_argument('--cmssw_src', action='store_true', help='Transfer CMSSW src as a tarball, and compile on worker node')
 parser.add_argument('--no_retar', action='store_true', help='Use existing tarball')
+parser.add_argument('--tar_only', action='store_true', help='(Re)make the tarball only')
 args = parser.parse_args()
 
-#scripts = [os.path.realpath(x) for x in args.scripts.split(",")]
+if args.tar_only:
+	if args.cmssw_src:
+		make_tarball(True)
+	elif args.cmssw:
+		make_tarball(False)
+	else:
+		print "ERROR : Please specify --cmssw or -cmssw_src for the tarball"
+	sys.exit(0)
 
 starting_directory = os.getcwd()
 if args.working_directory:
@@ -40,20 +82,19 @@ files_to_transfer.append(args.script)
 
 cmssw_version = os.path.expandvars("$CMSSW_VERSION")
 
-data_directory = "/uscms/home/dryu/nobackup/"
-#data_directory = "/home/dryu/data/"
-
 if args.cmssw_src:
 	if not args.no_retar:
-		tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
-		os.system(tar_command)
-	files_to_transfer.append("" + data_directory + "/" + cmssw_version + "_src.tar.gz")
+		make_tarball(True)
+		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + "_src.tar.gz -C $CMSSW_BASE/src . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		#os.system(tar_command)
+	files_to_transfer.append(get_tarball_path(True))
 
 if args.cmssw:
 	if not args.no_retar:
-		tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
-		os.system(tar_command)
-	files_to_transfer.append("" + data_directory + "/" + cmssw_version + ".tar.gz")
+		make_tarball(False)
+		#tar_command = "tar -hczf " + data_directory + "/" + cmssw_version + ".tar.gz -C $CMSSW_BASE . --exclude=*/test/crab --exclude=*/gen/crab --exclude=*/skim/crab --exclude=*/test/condor --exclude=*/.git*"
+		#os.system(tar_command)
+	files_to_transfer.append(get_tarball_path(False))
 
 if args.file_list:
 	file_list_txt = open(args.file_list)
@@ -84,7 +125,7 @@ for env_name, env_value in env_to_transfer.iteritems():
 if args.cmssw_src:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION/src\n")
-	top_script.write("tar -xzf " + cmssw_version + "_src.tar.gz -C $CMSSW_VERSION/src\n")
+	top_script.write("tar -xzf {} -C $CMSSW_VERSION/src\n".format(get_tarball_path(True)))
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
 	top_script.write("scram b -j8\n")
@@ -92,7 +133,7 @@ if args.cmssw_src:
 if args.cmssw:
 	top_script.write("source /cvmfs/cms.cern.ch/cmsset_default.sh\n")
 	top_script.write("mkdir -p $CMSSW_VERSION\n")
-	top_script.write("tar -xzf " + cmssw_version + ".tar.gz -C $CMSSW_VERSION\n")
+	top_script.write("tar -xzf {} -C $CMSSW_VERSION\n".format(get_tarball_path(False)))
 	top_script.write("cd $CMSSW_VERSION/src\n")
 	top_script.write("scramv1 b ProjectRename\n")
 	top_script.write("eval `scramv1 runtime -sh`\n")
@@ -125,7 +166,9 @@ submission_file.write("use_x509userproxy = true\n")
 submission_file.write("should_transfer_files = yes\n")
 submission_file.write("transfer_input_files=" + string.join(files_to_transfer,",") + "\n")
 submission_file.write("when_to_transfer_output = on_exit\n")
-if args.transfer_output:
+submission_file.write("+JobFlavour = \"{}\"\n".format(args.time_limit))
+
+ttime_if args.transfer_output:
 	submission_file.write("transfer_output_files = " + args.transfer_output + "\n")
 if args.log:
 	log_stdout = args.log + ".$(Cluster).$(Process).stdout"
